@@ -7,8 +7,11 @@
 
 Build an internal VS Code extension that provides a centralized
 tool catalog for AEP engineering teams. The extension renders a
-native Tree View sidebar listing approved tools (extensions, npm
-packages, Artifactory artifacts) from a static JSON registry.
+marketplace-style Webview sidebar listing approved tools
+(extensions, npm packages, Artifactory artifacts) from a static
+JSON registry. Each tool is displayed as a card with icon, name,
+description, and category — similar to the VS Code Extensions
+panel.
 Engineers can install extensions via VSIX sideload, install npm
 packages with registry-defined dependency types, and pull
 Artifactory artifacts — all through a sequential operation queue
@@ -38,11 +41,13 @@ management in MVP
 
 ### I. Extension-First Architecture — PASS
 
-- Sidebar catalog uses native TreeDataProvider (clarified in spec)
+- Sidebar catalog uses WebviewViewProvider registered via
+  `window.registerWebviewViewProvider` (contribution-point model)
 - All tool operations go through a service layer (ExtensionInstaller,
   NpmInstaller, ArtifactoryPuller)
 - Activation scoped to `onView:aepDevHub.toolCatalog`
 - All registrations return Disposables via `context.subscriptions`
+- Webview uses `localResourceRoots` and CSP for security
 
 ### II. Type Safety — PASS
 
@@ -57,8 +62,8 @@ management in MVP
 
 - Unit tests for: registry parsing, status detection, operation
   queue logic, type validators
-- Integration tests for: TreeDataProvider rendering, extension
-  install flow, npm install flow, Artifactory download flow
+- Integration tests for: CatalogViewProvider (webview) rendering,
+  extension install flow, npm install flow, Artifactory download flow
 - TDD cycle enforced: tests written before implementation
 
 **Gate result: ALL PASS — proceed to Phase 0.**
@@ -84,10 +89,11 @@ src/
 ├── types/
 │   ├── tool.ts              # Tool, ToolEntry, ToolType interfaces
 │   ├── registry.ts          # ToolRegistry schema type
-│   └── operations.ts        # OperationRequest, OperationResult types
-├── providers/
-│   ├── toolCatalogProvider.ts   # TreeDataProvider for sidebar
-│   └── toolTreeItem.ts         # TreeItem subclass for tool entries
+│   ├── operations.ts        # OperationRequest, OperationResult types
+│   └── messages.ts          # Webview ↔ extension message protocol
+├── webview/
+│   ├── catalogViewProvider.ts   # WebviewViewProvider for sidebar
+│   └── getWebviewContent.ts     # HTML template generator
 ├── services/
 │   ├── registryService.ts      # Load/parse/cache registry JSON
 │   ├── statusDetector.ts       # Detect install status per tool type
@@ -104,6 +110,16 @@ src/
 data/
 └── tool-registry.json          # Static bundled registry
 
+resources/
+├── devhub-icon.svg             # Activity bar icon
+├── icons/
+│   ├── extension.svg           # Tool type icon: extension
+│   ├── npm.svg                 # Tool type icon: npm package
+│   └── artifactory.svg        # Tool type icon: artifact
+└── webview/
+    ├── catalog.css             # Marketplace styles (VS Code theme vars)
+    └── catalog.js              # Frontend script (plain JS)
+
 tests/
 ├── unit/
 │   ├── registryService.test.ts
@@ -112,7 +128,7 @@ tests/
 │   ├── typeGuards.test.ts
 │   └── cache.test.ts
 ├── integration/
-│   ├── toolCatalogProvider.test.ts
+│   ├── catalogViewProvider.test.ts
 │   ├── extensionInstaller.test.ts
 │   ├── npmInstaller.test.ts
 │   └── artifactoryPuller.test.ts
@@ -133,4 +149,4 @@ providers, services, utils). `data/` holds the static registry.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| (none)    | —          | —                                   |
+| Plain JS in webview (not strict TS) | WebviewViewProvider requires browser JS for frontend rendering | TreeDataProvider cannot render multi-line card layouts; webview JS is minimal (~150 lines) and communicates via typed message protocol |

@@ -145,3 +145,34 @@ and testable per type without a monolithic switch statement.
   with new tool types.
 - Persistent install database: overengineered for MVP; filesystem
   checks are sufficient and always current.
+
+## R9: WebviewViewProvider for Catalog Sidebar
+
+**Decision**: Replace the `TreeDataProvider`-based catalog sidebar
+with a `WebviewViewProvider` using custom HTML/CSS for a
+marketplace-style card layout.
+
+**Rationale**: `TreeDataProvider` only supports single-line items
+with icon + label + description. The desired marketplace UI needs
+multi-line cards (icon, name, description, category/publisher on
+separate lines), a search bar, section headers with count badges,
+and inline action buttons — all impossible with a tree view. The
+VS Code Extensions panel itself uses a similar webview approach.
+`WebviewViewProvider` is sanctioned by Constitution Principle I
+("webview panels MUST follow the VS Code contribution-point
+model"). The webview uses VS Code CSS theme variables
+(`--vscode-*`) for native theme compliance.
+
+**Alternatives considered**:
+- TreeView with complex decorations: still limited to single-line
+  items; no search bar or card layout possible.
+- WebviewPanel (editor area): not suitable for a persistent
+  sidebar panel; WebviewView is the sidebar-specific API.
+- QuickPick: modal, not persistent; not suitable for browsing.
+
+**Implementation constraints**:
+- Plain HTML/CSS/JS (no build step, no framework) to minimize
+  complexity and respect the "no runtime dependencies" constraint.
+- Typed message protocol between extension host and webview for
+  type safety (Constitution Principle II).
+- Content Security Policy with nonce for script tags.

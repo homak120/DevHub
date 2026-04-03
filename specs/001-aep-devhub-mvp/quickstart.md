@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- VS Code 1.85+ installed
+- VS Code 1.110+ installed
 - Node.js 18+ and npm available on PATH
 - Network access to Artifactory (for extension/artifact pulls)
 - Artifactory credentials configured in environment
@@ -52,7 +52,11 @@ npm test
 | Extension entry      | `src/extension.ts`                |
 | Tool types           | `src/types/tool.ts`               |
 | Registry types       | `src/types/registry.ts`           |
-| Catalog tree view    | `src/providers/toolCatalogProvider.ts` |
+| Message protocol     | `src/types/messages.ts`           |
+| Catalog webview      | `src/webview/catalogViewProvider.ts` |
+| HTML template        | `src/webview/getWebviewContent.ts` |
+| Webview CSS          | `resources/webview/catalog.css`   |
+| Webview JS           | `resources/webview/catalog.js`    |
 | Registry service     | `src/services/registryService.ts` |
 | Operation queue      | `src/services/operationQueue.ts`  |
 | Tool registry data   | `data/tool-registry.json`         |
@@ -63,12 +67,16 @@ npm test
 
 1. Press F5 in VS Code to launch Extension Development Host
 2. Click the "AEP Dev Hub" icon in the activity bar
-3. Verify the tool catalog loads with 4 tools in categorized
-   groups (Extensions, CLI Tools, Quality)
-4. Click "Install" on any tool — verify progress indicator
+3. Verify the marketplace-style catalog loads with tool cards
+   showing icons, names, descriptions, categories, and status
+4. Verify tools are grouped into "INSTALLED" and "AVAILABLE"
+   sections with count badges
+5. Type in the search bar — verify tools filter in real-time
+   by name, description, or category
+6. Click "Install" on any tool card — verify progress indicator
    appears and operation completes (or shows auth error if
    Artifactory not configured)
-5. Trigger a second install while the first is running — verify
+7. Trigger a second install while the first is running — verify
    it queues instead of running concurrently
 
 ## Common Tasks

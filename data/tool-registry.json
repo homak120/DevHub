@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "aep-ui-copilot",
+      "name": "AEP UI Copilot Extension",
+      "description": "AI-powered UI development assistant for AEP",
+      "category": "Extensions",
+      "type": "extension",
+      "version": "1.2.0",
+      "registrySource": {
+        "extensionId": "aep.ui-copilot",
+        "vsixPath": "aep-extensions/ui-copilot/1.2.0/aep-ui-copilot-1.2.0.vsix"
+      }
+    },
+    {
+      "id": "farmfix-cli",
+      "name": "FarmFix CLI",
+      "description": "CLI tool for farm infrastructure management",
+      "category": "CLI Tools",
+      "type": "npm",
+      "version": "3.1.0",
+      "registrySource": {
+        "packageName": "@aep/farmfix-cli",
+        "dependencyType": "devDependencies"
+      }
+    },
+    {
+      "id": "aep-mcp-connector",
+      "name": "AEP MCP Connector",
+      "description": "Model Context Protocol connector for AEP services",
+      "category": "Extensions",
+      "type": "extension",
+      "version": "0.9.1",
+      "registrySource": {
+        "extensionId": "aep.mcp-connector",
+        "vsixPath": "aep-extensions/mcp-connector/0.9.1/aep-mcp-connector-0.9.1.vsix"
+      }
+    },
+    {
+      "id": "smartada",
+      "name": "SmartADA",
+      "description": "Accessibility compliance analysis tool",
+      "category": "Quality",
+      "type": "artifactory",
+      "version": "2.0.0",
+      "registrySource": {
+        "repository": "aep-tools-release",
+        "artifactPath": "smartada/2.0.0/smartada-bundle.zip",
+        "targetPath": ".smartada"
+      }
+    }
+  ]
+}

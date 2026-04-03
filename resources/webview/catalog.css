@@ -1,0 +1,324 @@
+/* AEP Dev Hub - Marketplace-style catalog */
+
+:root {
+    --card-padding: 10px;
+    --card-gap: 2px;
+    --icon-size: 42px;
+    --badge-size: 18px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--vscode-sideBar-background);
+    color: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground));
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size, 13px);
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Search bar */
+.search-container {
+    padding: 8px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--vscode-sideBar-background);
+}
+
+.search-input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid var(--vscode-input-border, transparent);
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size, 13px);
+    outline: none;
+    border-radius: 2px;
+}
+
+.search-input:focus {
+    border-color: var(--vscode-focusBorder);
+}
+
+.search-input::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+}
+
+/* Sections */
+.section {
+    margin-bottom: 4px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-editor-foreground));
+    background-color: var(--vscode-sideBarSectionHeader-background, transparent);
+    border-top: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+}
+
+.section-header:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.section-toggle {
+    margin-right: 4px;
+    font-size: 10px;
+    transition: transform 0.15s ease;
+}
+
+.section.collapsed .section-toggle {
+    transform: rotate(-90deg);
+}
+
+.section.collapsed .tool-list {
+    display: none;
+}
+
+.section-title {
+    flex: 1;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--badge-size);
+    height: var(--badge-size);
+    padding: 0 5px;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 600;
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+}
+
+/* Tool cards */
+.tool-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-gap);
+}
+
+.tool-card {
+    display: flex;
+    padding: var(--card-padding) 12px;
+    cursor: pointer;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.tool-card:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.tool-card.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+/* Tool icon */
+.tool-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    min-width: var(--icon-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.1));
+}
+
+.tool-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--vscode-icon-foreground, var(--vscode-editor-foreground));
+}
+
+/* Tool info */
+.tool-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tool-name {
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tool-description {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.tool-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 2px;
+}
+
+.tool-category {
+    opacity: 0.8;
+}
+
+.tool-version {
+    opacity: 0.7;
+}
+
+.tool-type-badge {
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+}
+
+/* Status indicators */
+.tool-status {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tool-status.installed {
+    color: var(--vscode-testing-iconPassed, #73c991);
+}
+
+.tool-status.update-available {
+    color: var(--vscode-editorInfo-foreground, #3794ff);
+}
+
+.tool-status.error {
+    color: var(--vscode-errorForeground, #f48771);
+}
+
+.tool-status.deprecated {
+    color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.tool-status.in-progress,
+.tool-status.queued {
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+}
+
+/* Action buttons */
+.tool-actions {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+}
+
+.action-button {
+    padding: 3px 12px;
+    border: none;
+    border-radius: 2px;
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+    white-space: nowrap;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.action-button:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.action-button.secondary {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.action-button.secondary:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.action-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* Empty and error states */
+.empty-state,
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+.empty-hint {
+    font-size: 12px;
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+.error-state p {
+    margin-bottom: 12px;
+    color: var(--vscode-errorForeground);
+}
+
+/* Progress indicator */
+.progress-bar {
+    height: 2px;
+    background-color: var(--vscode-progressBar-background);
+    animation: progress 1.5s ease-in-out infinite;
+    border-radius: 1px;
+}
+
+@keyframes progress {
+    0% { width: 0; }
+    50% { width: 80%; }
+    100% { width: 100%; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-background);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbarSlider-hoverBackground);
+}

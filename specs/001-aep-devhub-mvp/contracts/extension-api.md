@@ -22,7 +22,8 @@
       "aepDevHub": [
         {
           "id": "aepDevHub.toolCatalog",
-          "name": "Tool Catalog"
+          "name": "Tool Catalog",
+          "type": "webview"
         }
       ]
     }
@@ -50,32 +51,66 @@
 }
 ```
 
-## TreeDataProvider Contract
+## WebviewViewProvider Contract
 
-### ToolCatalogProvider
+### CatalogViewProvider
 
 ```typescript
-interface ToolCatalogProvider extends vscode.TreeDataProvider<ToolTreeItem> {
-  getTreeItem(element: ToolTreeItem): vscode.TreeItem;
-  getChildren(element?: ToolTreeItem): ToolTreeItem[];
-  refresh(): void;
+// Marketplace-style sidebar using WebviewViewProvider
+class CatalogViewProvider implements vscode.WebviewViewProvider {
+  constructor(
+    extensionUri: vscode.Uri,
+    registryService: RegistryService,
+    statusDetector: StatusDetector
+  );
+
+  // Called when the view becomes visible
+  resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    context: vscode.WebviewViewResolveContext,
+    token: vscode.CancellationToken
+  ): void;
+
+  // Reload registry + statuses → push to webview
+  refresh(): Promise<void>;
+
+  // Event fired when webview sends a command (install, update, etc.)
+  readonly onDidReceiveCommand: vscode.Event<WebviewCommand>;
+}
+
+interface WebviewCommand {
+  command: 'install' | 'update' | 'open' | 'retry';
+  toolId: string;
 }
 ```
 
-### ToolTreeItem
+## Webview Message Protocol
+
+### Extension → Webview
 
 ```typescript
-// TreeItem displayed in the catalog sidebar
-// - Category nodes: collapsible group headers
-// - Tool nodes: leaf items with status icon and inline actions
-//
-// contextValue determines which commands appear:
-//   "tool-not-installed"  → Install action
-//   "tool-installed"      → Open/Activate action
-//   "tool-update"         → Update action
-//   "tool-queued"         → no actions (pending)
-//   "tool-in-progress"    → no actions (busy)
-//   "tool-error"          → Retry action
+type ExtensionToWebviewMessage =
+  | { type: 'updateCatalog'; tools: ToolWithStatus[]; }
+  | { type: 'updateToolStatus'; toolId: string; status: ToolStatus; }
+  | { type: 'operationProgress'; toolId: string; message: string; }
+  | { type: 'error'; message: string; };
+
+interface ToolWithStatus {
+  tool: Tool;
+  status: ToolStatus;
+}
+```
+
+### Webview → Extension
+
+```typescript
+type WebviewToExtensionMessage =
+  | { type: 'install'; toolId: string; }
+  | { type: 'update'; toolId: string; }
+  | { type: 'open'; toolId: string; }
+  | { type: 'retry'; toolId: string; }
+  | { type: 'refresh'; }
+  | { type: 'search'; query: string; };
 ```
 
 ## Service Contracts

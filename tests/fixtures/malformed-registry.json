@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "missing-fields",
+      "name": "Incomplete Tool"
+    },
+    {
+      "id": "wrong-type",
+      "name": "Bad Type Tool",
+      "description": "Has wrong type",
+      "category": "Testing",
+      "type": "unknown",
+      "version": "1.0.0",
+      "registrySource": {}
+    }
+  ]
+}

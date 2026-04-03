@@ -1,0 +1,99 @@
+{
+  "name": "aep-devhub",
+  "displayName": "AEP Dev Hub",
+  "description": "Centralized tool catalog for AEP engineering teams",
+  "version": "0.1.0",
+  "publisher": "aep",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:aepDevHub.toolCatalog"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aepDevHub",
+          "title": "AEP Dev Hub",
+          "icon": "resources/devhub-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "aepDevHub": [
+        {
+          "id": "aepDevHub.toolCatalog",
+          "name": "Tool Catalog",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "aepDevHub.refreshCatalog",
+        "title": "Refresh Tool Catalog",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "aepDevHub.installTool",
+        "title": "Install Tool",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "aepDevHub.updateTool",
+        "title": "Update Tool",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "aepDevHub.retryOperation",
+        "title": "Retry",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "aepDevHub.openTool",
+        "title": "Open/Activate",
+        "icon": "$(go-to-file)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "aepDevHub.refreshCatalog",
+          "when": "view == aepDevHub.toolCatalog",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": []
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "TS_NODE_PROJECT=tests/tsconfig.json mocha --require ts-node/register --require tsconfig-paths/register 'tests/unit/**/*.test.ts' --timeout 10000",
+    "test:integration": "TS_NODE_PROJECT=tests/tsconfig.json mocha --require ts-node/register --require tsconfig-paths/register 'tests/integration/**/*.test.ts' --timeout 30000",
+    "lint": "eslint src --ext ts",
+    "package": "npx vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.5.0",
+    "@types/sinon": "^21.0.0",
+    "@types/vscode": "^1.110.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^10.1.0",
+    "mocha": "^11.7.5",
+    "sinon": "^21.0.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^6.0.2"
+  }
+}

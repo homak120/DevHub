@@ -10,30 +10,35 @@
 ### User Story 1 - Browse Tool Catalog (Priority: P1)
 
 As an AEP engineer, I open the Dev Hub sidebar in VS Code and
-see a browsable catalog of all approved engineering tools. Each
-tool displays its name, description, category, and current
-status (installed, available, update available). I can search
-and filter tools by category or keyword.
+see a marketplace-style catalog of all approved engineering
+tools. Each tool is displayed as a card with an icon, name,
+description, category, and current status (installed, available,
+update available). Tools are grouped into "Installed" and
+"Available" sections with count badges. I can search and filter
+tools using a search bar at the top of the sidebar.
 
 **Why this priority**: The catalog is the foundation of the
 entire hub — without it, no other feature can be discovered or
 launched. This is the minimum viable product on its own.
 
 **Independent Test**: Open VS Code with the extension installed,
-click the Dev Hub sidebar icon, and verify the full tool list
-renders with accurate metadata.
+click the Dev Hub sidebar icon, and verify the marketplace-style
+catalog renders with tool cards showing icons, descriptions,
+and status indicators.
 
 **Acceptance Scenarios**:
 
 1. **Given** the extension is installed and activated, **When**
    I click the Dev Hub icon in the activity bar, **Then** the
-   sidebar opens showing a categorized list of all approved
-   tools with name, description, and status.
-2. **Given** the catalog is open, **When** I use the built-in
-   tree view filter (Ctrl/Cmd+F), **Then** the list filters to
-   show only tools matching by name, description, or category.
-3. **Given** the catalog is open, **When** I select a category
-   filter, **Then** only tools in that category are displayed.
+   sidebar opens showing a marketplace-style catalog with tool
+   cards displaying icon, name, description, category, and
+   status for each approved tool.
+2. **Given** the catalog is open, **When** I type in the search
+   bar at the top, **Then** the tool list filters in real-time
+   to show only tools matching by name, description, or category.
+3. **Given** the catalog is open, **When** I view the sections,
+   **Then** I see tools grouped into "Installed" (with count
+   badge) and "Available" sections, each collapsible.
 4. **Given** the catalog is open and no tools match my search,
    **When** I view the results, **Then** I see a clear
    "No tools found" message with a suggestion to clear filters.
@@ -201,8 +206,9 @@ with conflict preview when existing files would be overwritten.
 
 - **FR-001**: System MUST display a browsable, searchable
   catalog of approved AEP engineering tools in a VS Code
-  sidebar panel using a native Tree View (TreeDataProvider)
-  with icons and inline actions.
+  sidebar panel using a marketplace-style Webview with card
+  layout, search bar, section grouping, and inline action
+  buttons.
 - **FR-002**: System MUST read tool definitions from a static
   JSON registry that includes name, description, category,
   type (extension/npm/artifactory), and version.
@@ -281,7 +287,8 @@ with conflict preview when existing files would be overwritten.
 
 ### Session 2026-04-01
 
-- Q: What UI approach for the catalog sidebar? → A: Native Tree View using VS Code TreeDataProvider with icons and inline actions.
+- Q: What UI approach for the catalog sidebar? → A: Marketplace-style Webview sidebar using VS Code WebviewViewProvider with HTML/CSS card layout, search bar, and section grouping. (Updated 2026-04-03: originally TreeDataProvider, changed to WebviewViewProvider for richer multi-line card UI matching the VS Code Extensions panel look.)
+- Q: Why switch from TreeView to Webview? → A: TreeDataProvider only supports single-line items. Marketplace-style cards with multi-line content (name, description, publisher/category) and inline action buttons require a WebviewViewProvider with custom HTML/CSS. The VS Code Extensions panel itself uses this approach.
 - Q: Where are approved extensions sourced from? → A: VSIX sideload from Artifactory — download .vsix files and install locally.
 - Q: How are Artifactory/Bitbucket credentials stored? → A: Not handled in MVP. Authentication is deferred to Phase 1.5 or later. MVP assumes pre-authenticated access (e.g., existing environment tokens).
 - Q: npm install scope (dependencies vs devDependencies)? → A: Registry-defined per tool — each tool entry specifies its dependency type.
