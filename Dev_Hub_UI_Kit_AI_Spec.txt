@@ -1,0 +1,1696 @@
+========================================================================
+DEV HUB UI KIT - SPEC FOR AI CODE ASSISTANTS
+========================================================================
+
+Purpose: paste this whole file (or relevant sections) into a Copilot /
+Claude / Cursor prompt so the model can match the exact look, tokens,
+and component anatomy of the AEP Dev Hub VS Code extension.
+
+Everything below is plain text. No images, no base64, no bundles.
+Sections are delimited by ===== FILE: path =====.
+
+------------------------------------------------------------------------
+TABLE OF CONTENTS
+------------------------------------------------------------------------
+1. High-level overview
+2. Design tokens (colors, type, spacing)
+3. Panel anatomy (ASCII wireframes)
+4. Component catalog
+5. Source files (CSS + JSX + HTML)
+
+========================================================================
+1. HIGH-LEVEL OVERVIEW
+========================================================================
+
+The Dev Hub extension lives in the VS Code sidebar (Activity Bar >
+"Dev Hub" / tools icon). It has three views that share the same 380px-wide
+sidebar column:
+
+  - MainPanel     "AEP DEV HUB: TOOL CATALOG"  (default)
+  - SettingsPanel "AEP DEV HUB: SETTINGS"      (opened via gear)
+  - AIMarketplace "DEV HUB > AI MARKETPLACE"   (opened via rocket row)
+
+Clicking a marketplace source opens a centered overlay modal on top of
+the editor (dark radial purple, gradient title, category tiles).
+
+All colors derive from VS Code theme tokens (--vscode-*) so the UI
+adapts to light + dark themes. Fonts: 'Segoe UI' (ui) and
+'SF Mono'/'Menlo' (mono) stacks. Icons are Microsoft codicons.
+
+========================================================================
+2. DESIGN TOKENS
+========================================================================
+
+All tokens are declared in colors_and_type.css and prefixed --dh-*.
+They reference VS Code theme vars so they respect the user's theme.
+
+Key colors (dark theme resolved values):
+  --dh-bg-panel       #252526   sidebar background
+  --dh-bg-hover       #2a2d2e   row hover
+  --dh-bg-selected    #37373d   row selected
+  --dh-fg             #cccccc   primary foreground
+  --dh-fg-dim         #9d9d9d   secondary foreground
+  --dh-fg-faint       #6b6b6b   tertiary / version labels
+  --dh-fg-section     #cccccc   section headers (uppercase)
+  --dh-border         #3a3a3a   separators
+  --dh-focus          #007fd4   focus ring
+  --dh-link           #3794ff   links / interactive blue
+  --dh-danger         #f14c4c   destructive text
+  --dh-danger-bg      #5a1d1d   destructive bg
+
+Accent (action buttons + type tags, NOT theme-derived):
+  sky-500  #0ea5e9   solid button / count pill
+  sky-400  #38bdf8   gradient top + tag border/text
+  sky-700  #0284c7   button border
+
+Section count pills: background #0ea5e9, text #ffffff, border-radius 999,
+min-width 18px, height 18px.
+
+Type scale (all use --dh-font-ui = Segoe UI stack):
+  title bar      11px / 600 / uppercase / letter-spacing .08em
+  card title     13px / 600
+  card desc      12px / 400 / --dh-fg-dim
+  type tag       10px / 700 / uppercase / letter-spacing .04em
+  badge count    10px / 600
+  meta           11px / 400 / --dh-fg-dim
+
+Monospace (--dh-font-mono = SF Mono stack) used for:
+  - repo paths in marketplace sidebar  (10px / --dh-fg-dim)
+  - resource names in overlay detail view (13px)
+
+Spacing:
+  row vertical padding      4-6px
+  card padding              10px 10px 8px 12px
+  card margin               4px 8px
+  title bar padding         10px 12px
+  search padding            10px 12px
+  section header padding    8px 12px 6px
+
+Radii:
+  card / row                4px
+  icon tile                 6px (32x32)
+  overlay modal             12px
+  button                    4px
+
+Transitions:
+  row bg                    120ms
+  chevron rotate            120ms
+  pin rotate                120ms
+
+========================================================================
+3. PANEL ANATOMY
+========================================================================
+
+MainPanel (AEP DEV HUB: TOOL CATALOG)
+--------------------------------------
+
+  +--------------------------------------------------+
+  | AEP DEV HUB: TOOL CATALOG   [refresh] [gear]     |  title bar
+  +--------------------------------------------------+
+  | [ search tools...                             ]  |  search
+  +--------------------------------------------------+
+  | [rocket] AI Marketplace                      >   |  nav row
+  +--------------------------------------------------+
+  | v FAVORITES                               (4)    |  section header
+  |  +--------------------------------------------+  |
+  |  |[ic] AEP Copilot Tools        [Reinstall]   |  |
+  |  |     AI-powered UI dev assistant for AEP    |  |
+  |  |     [EXTENSION] Extensions v1.2.0 Installed|  |
+  |  |                                     [pin]  |  |  pin bottom-right
+  |  +--------------------------------------------+  |
+  |  ... more cards                                  |
+  |                                                  |
+  | v AVAILABLE                               (4)    |
+  | v MOBILE PROMPTS                          (1)    |
+  +--------------------------------------------------+
+
+Card anatomy (ToolCard):
+  - 32x32 rounded icon tile on left (bg rgba(255,255,255,0.04), 6px radius)
+  - title (13px / 600) + desc (12px / dim)
+  - action button top-right: sky gradient fill, white text, 4px radius
+  - meta row: outlined sky type tag + category + version + status
+  - pin icon at bottom-right corner (12px, rotates -35deg when pinned)
+  - hover: bg --dh-bg-hover
+
+Status styles:
+  "Installed"     -> green #22c55e
+  "Coming Soon"   -> dim italic
+  "Available"     -> dim regular
+
+SettingsPanel (opened via gear icon)
+------------------------------------
+- Breadcrumb: [x] DEV HUB > SETTINGS
+- Centered "Clear All Data" outlined danger button
+- Same width as main (380px)
+
+AIMarketplace sidebar list (opened via rocket row)
+---------------------------------------------------
+- Breadcrumb: [back] DEV HUB > AI MARKETPLACE
+- Section label: SOURCES
+- List of marketplace sources. Each row:
+    [repo icon]  Name            count  >
+                 owner/repo-path
+- "Add source" affordance at bottom
+
+Overlay modal (opens when you click a marketplace source)
+----------------------------------------------------------
+- 1000px wide, centered, on rgba(0,0,0,0.6) backdrop with 2px blur
+- Radial purple gradient bg:
+    radial-gradient(ellipse at top,
+                    #2a1b3d 0%, #1a0f22 55%, #140a1c 100%)
+- Title: 44px / 800, gradient text (#a855f7 -> #ec4899)
+- Subtitle: 14px, muted #b9b0cc
+- Search box + "Repo" link row, 40px tall each
+- 3-column grid of category tiles:
+    - tinted outline icon (24px)
+    - category name (17 / 700)
+    - count (22 / 700 / #a855f7)
+    - two-line description (13 / dim purple)
+    - hover: lift 1px, border brightens
+- Click a tile -> detail view with resource list + Install buttons
+- Close: [x] top-right OR Esc key OR click backdrop
+
+ActivityBar (left strip, 48px)
+------------------------------
+Files, Search, Source Control, Extensions, [Tools = Dev Hub active]
++ bottom: color-mode toggle
+
+========================================================================
+4. COMPONENT CATALOG
+========================================================================
+
+Reusable primitives (Primitives.jsx):
+  - Checkbox         styled VS Code checkbox with codicon-check
+  - IconButton       24x24 transparent hover-bg button with codicon
+  - DangerButton     outlined #f14c4c text+border, hover fills
+  - SectionLabel     11px uppercase muted section header
+  - TitleBar         flex row with title + optional close (x) button
+
+Composed views:
+  - MainPanel           catalog (title bar + search + sections + cards)
+  - SettingsPanel       clear-all-data centered card
+  - AIMarketplaceList   sidebar list of marketplace sources
+  - MarketplaceOverlay  centered modal with category grid + detail view
+  - ActivityBar         48px left strip
+
+Data shapes:
+  CATALOG item      { icon, iconTint, title, desc, type, meta, version,
+                      status, action, pinned }
+  MARKETPLACE       { id, name, repo, icon:"repo", toolCount, subtitle,
+                      categories: [{name, icon, count, color, desc}] }
+
+Action-button copy cases:
+  "Reinstall" (Installed)   "Download" (not installed)
+  "Open"      (Web)          "Install" (Skill / Plugin)
+  null        (Coming Soon - show italic status instead, no button)
+
+Type tags currently in use:
+  EXTENSION  PACKAGE  ARTIFACTORY  WEB  SKILL  AGENTPLUGIN
+
+========================================================================
+5. SOURCE FILES
+========================================================================
+
+All files below are inlined verbatim. Each file starts with a
+===== FILE: <path> ===== marker and ends with ===== END: <path> =====.
+
+
+========================================================================
+===== FILE: colors_and_type.css =====
+===== colors_and_type.css (design tokens) =====
+========================================================================
+
+/*
+ * Dev Hub Design System — tokens
+ *
+ * Primary contract: every token resolves to a VS Code theme variable first,
+ * with a static fallback for preview contexts that don't have the VS Code
+ * webview environment loaded (e.g. Storybook-style previews, these design
+ * system cards).
+ *
+ * Inside the real extension webview, VS Code injects --vscode-* vars and
+ * these fallbacks are never seen.
+ *
+ * Usage:
+ *   <link rel="stylesheet" href="colors_and_type.css" />
+ *   <div class="dh-panel">...
+ */
+
+:root {
+  /* ─── Typography ─────────────────────────────────────── */
+  --dh-font-ui: var(--vscode-font-family,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Ubuntu",
+    "Droid Sans", sans-serif);
+  --dh-font-mono: var(--vscode-editor-font-family,
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace);
+
+  --dh-font-size-body: 13px;
+  --dh-font-size-small: 11px;
+  --dh-font-size-label: 10px;     /* uppercase section labels */
+  --dh-font-size-heading: 11px;   /* group header + title bar  */
+
+  --dh-font-weight-regular: 400;
+  --dh-font-weight-medium: 500;
+  --dh-font-weight-semibold: 600;
+
+  --dh-letter-spacing-label: 0.08em;
+  --dh-line-height-tight: 1.15;
+  --dh-line-height-body: 1.4;
+
+  /* ─── Colors (map to VS Code theme tokens) ───────────── */
+  /* Surfaces */
+  --dh-bg-panel:        var(--vscode-sideBar-background,        #252526);
+  --dh-bg-section:      var(--vscode-sideBarSectionHeader-background, #2d2d2d);
+  --dh-bg-hover:        var(--vscode-list-hoverBackground,      #2a2d2e);
+  --dh-bg-active:       var(--vscode-list-activeSelectionBackground, #37373d);
+  --dh-bg-input:        var(--vscode-input-background,          #3c3c3c);
+
+  /* Foregrounds */
+  --dh-fg:              var(--vscode-foreground,                #cccccc);
+  --dh-fg-dim:          var(--vscode-descriptionForeground,     #9d9d9d);
+  --dh-fg-faint:        var(--vscode-disabledForeground,        #6b6b6b);
+  --dh-fg-section:      var(--vscode-sideBarSectionHeader-foreground, #cccccc);
+
+  /* Borders & rules */
+  --dh-border:          var(--vscode-panel-border,              #3a3a3a);
+  --dh-border-section:  var(--vscode-sideBarSectionHeader-border, #3a3a3a);
+  --dh-focus-ring:      var(--vscode-focusBorder,               #007fd4);
+
+  /* Accents */
+  --dh-accent:          var(--vscode-focusBorder,               #007fd4);
+  --dh-accent-fg:       var(--vscode-button-foreground,         #ffffff);
+  --dh-link:            var(--vscode-textLink-foreground,       #3794ff);
+
+  /* Destructive */
+  --dh-danger:          var(--vscode-errorForeground,           #f14c4c);
+  --dh-danger-bg:       var(--vscode-inputValidation-errorBackground, #5a1d1d);
+  --dh-danger-border:   var(--vscode-inputValidation-errorBorder, #be1100);
+  --dh-danger-fg:       #ffffff;  /* text on filled danger; always white */
+
+  /* Checkbox states (override via --vscode-checkbox-* if present) */
+  --dh-check-bg:        var(--vscode-checkbox-background,       transparent);
+  --dh-check-border:    var(--vscode-checkbox-border,           var(--dh-fg-dim));
+  --dh-check-fg:        var(--vscode-checkbox-foreground,       var(--dh-fg));
+  --dh-check-selected-bg:     var(--vscode-checkbox-selectBackground, var(--dh-accent));
+  --dh-check-selected-border: var(--vscode-checkbox-selectBorder,     var(--dh-accent));
+  --dh-check-selected-fg:     var(--dh-accent-fg);
+
+  /* ─── Spacing (2px grid) ─────────────────────────────── */
+  --dh-space-1: 2px;
+  --dh-space-2: 4px;
+  --dh-space-3: 6px;
+  --dh-space-4: 8px;
+  --dh-space-5: 10px;
+  --dh-space-6: 12px;
+  --dh-space-7: 16px;
+  --dh-space-8: 20px;
+  --dh-space-9: 24px;
+
+  --dh-panel-padding-x: var(--dh-space-5);   /* 10px */
+  --dh-indent-tool-row: 30px;
+
+  /* ─── Radii ──────────────────────────────────────────── */
+  --dh-radius-input: 2px;
+  --dh-radius-button: 2px;
+  --dh-radius-hit: 3px;
+  --dh-radius-panel: 0;
+
+  /* ─── Elevation (floating only) ──────────────────────── */
+  --dh-shadow-popover: 0 2px 8px rgba(0, 0, 0, 0.36);
+
+  /* ─── Motion ─────────────────────────────────────────── */
+  --dh-duration-fast: 0ms;
+  --dh-duration-chevron: 120ms;
+  --dh-easing: ease;
+
+  /* ─── Sizing ─────────────────────────────────────────── */
+  --dh-row-h-tool: 22px;
+  --dh-row-h-group: 26px;
+  --dh-row-h-title: 30px;
+  --dh-row-h-hit: 22px;   /* min touch target for icon buttons */
+  --dh-sidebar-min-w: 240px;
+  --dh-sidebar-default-w: 300px;
+}
+
+/* ─── Semantic element defaults ───────────────────────── */
+
+.dh-panel {
+  background: var(--dh-bg-panel);
+  color: var(--dh-fg);
+  font-family: var(--dh-font-ui);
+  font-size: var(--dh-font-size-body);
+  line-height: var(--dh-line-height-body);
+}
+
+.dh-label {
+  font-family: var(--dh-font-ui);
+  font-size: var(--dh-font-size-label);
+  letter-spacing: var(--dh-letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--dh-fg-section);
+  font-weight: var(--dh-font-weight-semibold);
+}
+
+.dh-code, .dh-mono {
+  font-family: var(--dh-font-mono);
+}
+
+.dh-title-bar {
+  height: var(--dh-row-h-title);
+  background: var(--dh-bg-section);
+  border-bottom: 1px solid var(--dh-border-section);
+  padding: 0 var(--dh-space-3) 0 var(--dh-panel-padding-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dh-icon-button {
+  width: var(--dh-row-h-hit);
+  height: var(--dh-row-h-hit);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--dh-radius-hit);
+}
+.dh-icon-button:hover { background: var(--dh-bg-hover); }
+.dh-icon-button:focus-visible { outline: 1px solid var(--dh-focus-ring); outline-offset: -1px; }
+
+.dh-button {
+  font-family: var(--dh-font-ui);
+  font-size: var(--dh-font-size-body);
+  font-weight: var(--dh-font-weight-medium);
+  height: 28px;
+  padding: 0 var(--dh-space-6);
+  border-radius: var(--dh-radius-button);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dh-space-2);
+}
+
+.dh-button--danger {
+  background: var(--dh-danger);
+  border-color: var(--dh-danger);
+  color: var(--dh-danger-fg);
+}
+.dh-button--danger:hover    { filter: brightness(1.08); }
+.dh-button--danger:active   { filter: brightness(0.92); }
+.dh-button--danger:focus-visible { outline: 1px solid var(--dh-focus-ring); outline-offset: 1px; }
+
+.dh-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dh-space-4);
+  padding: 0 var(--dh-panel-padding-x);
+  height: var(--dh-row-h-tool);
+}
+.dh-row:hover { background: var(--dh-bg-hover); }
+
+.dh-row--group {
+  height: var(--dh-row-h-group);
+  cursor: pointer;
+}
+.dh-row--tool {
+  padding-left: var(--dh-indent-tool-row);
+}
+
+===== END: colors_and_type.css =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/Primitives.jsx =====
+===== Primitives.jsx (shared UI primitives) =====
+========================================================================
+
+/* Dev Hub UI Kit — shared primitives */
+
+function Checkbox({ checked, indeterminate, onChange, ariaLabel }) {
+  return (
+    <span
+      role="checkbox"
+      aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={ariaLabel}
+      tabIndex={0}
+      onClick={(e) => { e.stopPropagation(); onChange && onChange(!checked); }}
+      onKeyDown={(e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          onChange && onChange(!checked);
+        }
+      }}
+      style={{
+        width: 14, height: 14, borderRadius: 2, flex: "none",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        border: `1px solid ${(checked || indeterminate) ? "var(--dh-check-selected-border)" : "var(--dh-check-border)"}`,
+        background: (checked || indeterminate) ? "var(--dh-check-selected-bg)" : "var(--dh-check-bg)",
+        color: "var(--dh-check-selected-fg)",
+        cursor: "pointer",
+        boxSizing: "border-box",
+      }}
+    >
+      {checked && !indeterminate && (
+        <i className="codicon codicon-check" style={{ fontSize: 10, color: "var(--dh-check-selected-fg)" }} />
+      )}
+      {indeterminate && (
+        <span style={{ display: "block", width: 8, height: 1.5, background: "var(--dh-check-selected-fg)" }} />
+      )}
+    </span>
+  );
+}
+
+function IconButton({ codicon, title, onClick }) {
+  return (
+    <button className="dh-icon-button" title={title} aria-label={title} onClick={onClick}>
+      <i className={`codicon codicon-${codicon}`} style={{ fontSize: 14 }} />
+    </button>
+  );
+}
+
+function DangerButton({ icon = "trash", children, onClick }) {
+  return (
+    <button className="dh-button dh-button--danger" onClick={onClick}>
+      <i className={`codicon codicon-${icon}`} style={{ fontSize: 14 }} />
+      {children}
+    </button>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{
+      padding: "8px 10px 2px",
+      fontFamily: "var(--dh-font-ui)",
+      fontSize: "var(--dh-font-size-label)",
+      letterSpacing: "var(--dh-letter-spacing-label)",
+      textTransform: "uppercase",
+      fontWeight: 600,
+      color: "var(--dh-fg-section)",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function TitleBar({ breadcrumb, onClose }) {
+  return (
+    <div className="dh-title-bar">
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6,
+        fontFamily: "var(--dh-font-ui)", fontSize: 11, fontWeight: 600,
+        letterSpacing: "0.08em", textTransform: "uppercase",
+        color: "var(--dh-fg-section)",
+      }}>
+        {breadcrumb.map((b, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <span style={{ opacity: 0.5, fontWeight: 400 }}>›</span>}
+            <span style={{ opacity: i === breadcrumb.length - 1 ? 1 : 0.6 }}>{b}</span>
+          </React.Fragment>
+        ))}
+      </div>
+      {onClose && <IconButton codicon="close" title="close" onClick={onClose} />}
+    </div>
+  );
+}
+
+Object.assign(window, { Checkbox, IconButton, DangerButton, SectionLabel, TitleBar });
+
+===== END: ui_kits/dev_hub/Primitives.jsx =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/MainPanel.jsx =====
+===== MainPanel.jsx (Tool Catalog panel) =====
+========================================================================
+
+/* Dev Hub UI Kit — MainPanel (AEP Dev Hub: Tool Catalog style)
+ *
+ * Rebuilt to match the existing extension look:
+ *   - Uppercase title + header icons
+ *   - Full-width search box
+ *   - Collapsible sections with count pill
+ *   - Cards for each tool: icon, title, subtitle, action button,
+ *     type-badge + meta row, pin affordance
+ */
+
+const CATALOG_SECTIONS = [
+  {
+    name: "FAVORITES",
+    items: [
+      {
+        icon: "extensions", iconTint: "#a855f7",
+        title: "AEP Copilot Tools",
+        desc: "AI-powered UI development assistant for AEP",
+        type: "EXTENSION", meta: "Extensions", version: "v1.2.0",
+        status: "Installed", action: "Reinstall", pinned: true,
+      },
+      {
+        icon: "package", iconTint: "#22d3ee",
+        title: "FarmFix AI Package",
+        desc: "AI-powered remediation framework",
+        type: "PACKAGE", meta: "Zip Package", version: "v1.0.0",
+        status: null, action: "Download", pinned: true,
+      },
+      {
+        icon: "symbol-method", iconTint: "#f97316",
+        title: "SmartADA",
+        desc: "Accessibility compliance analysis tool",
+        type: "ARTIFACTORY", meta: "Quality", version: "v2.0.0",
+        status: "Coming Soon", action: null, pinned: true,
+      },
+      {
+        icon: "extensions", iconTint: "#ec4899",
+        title: "Confluence Copilot",
+        desc: "AI-powered Confluence extension for Copilot integration",
+        type: "EXTENSION", meta: "Extensions", version: "v0.1.0",
+        status: null, action: "Download", pinned: true,
+      },
+    ],
+  },
+  {
+    name: "AVAILABLE",
+    items: [
+      {
+        icon: "extensions", iconTint: "#10b981",
+        title: "Copilot Browser",
+        desc: "AI-powered browser extension for Copilot integration",
+        type: "EXTENSION", meta: "Extensions", version: "v0.1.0",
+        status: null, action: "Download", pinned: false,
+      },
+      {
+        icon: "extensions", iconTint: "#3b82f6",
+        title: "Bitbucket Copilot",
+        desc: "AI-powered Bitbucket extension for Copilot integration",
+        type: "EXTENSION", meta: "Extensions", version: "v0.1.0",
+        status: null, action: "Download", pinned: false,
+      },
+      {
+        icon: "dashboard", iconTint: "#f59e0b",
+        title: "AOAOneView",
+        desc: "Engineering metrics and team health dashboard",
+        type: "WEB", meta: "Dashboards", version: null,
+        status: "Available", action: "Open", pinned: false,
+      },
+      {
+        icon: "symbol-color", iconTint: "#a855f7",
+        title: "Figma",
+        desc: "Design handoff and component inspection for Figma files",
+        type: "AGENTPLUGIN", meta: "Agent Plugins", version: "v0.3.0",
+        status: null, action: "Install", pinned: false,
+      },
+    ],
+  },
+  {
+    name: "MOBILE PROMPTS",
+    items: [
+      {
+        icon: "lightbulb", iconTint: "#a855f7",
+        title: "AC Report from JIRA",
+        desc: "AI skill for Acceptance Criteria Review & Report generation from JIRA",
+        type: "SKILL", meta: "AI Skills", version: null,
+        status: null, action: "Install", pinned: false,
+      },
+    ],
+  },
+];
+
+function MainPanel({ onOpenSettings, onOpenMarketplace }) {
+  const [query, setQuery] = React.useState("");
+  const [openSet, setOpenSet] = React.useState(new Set(["FAVORITES", "AVAILABLE", "MOBILE PROMPTS"]));
+
+  const toggleSection = (name) => {
+    const n = new Set(openSet);
+    n.has(name) ? n.delete(name) : n.add(name);
+    setOpenSet(n);
+  };
+
+  const matchesQuery = (item) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      item.title.toLowerCase().includes(q) ||
+      item.desc.toLowerCase().includes(q) ||
+      item.type.toLowerCase().includes(q)
+    );
+  };
+
+  return (
+    <div className="dh-panel" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* title bar */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "10px 12px",
+        borderBottom: "1px solid var(--dh-border)",
+        flex: "none",
+      }}>
+        <span style={{
+          fontFamily: "var(--dh-font-ui)", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.08em", textTransform: "uppercase",
+          color: "var(--dh-fg-section)", flex: 1,
+        }}>
+          AEP Dev Hub: Tool Catalog
+        </span>
+        <IconButton codicon="refresh" title="refresh" />
+        <IconButton codicon="gear" title="settings" onClick={onOpenSettings} />
+      </div>
+
+      {/* search */}
+      <div style={{ padding: "10px 12px", flex: "none" }}>
+        <div style={{
+          position: "relative",
+          background: "var(--vscode-input-background, #3c3c3c)",
+          border: "1px solid var(--dh-border)",
+          borderRadius: 4,
+          height: 28,
+          display: "flex", alignItems: "center",
+          padding: "0 10px",
+        }}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tools..."
+            style={{
+              flex: 1, background: "transparent", border: 0, outline: 0,
+              color: "var(--dh-fg)", fontFamily: "var(--dh-font-ui)", fontSize: 12,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* AI Marketplace nav entry */}
+      {onOpenMarketplace && (
+        <div
+          onClick={onOpenMarketplace}
+          style={{
+            cursor: "pointer",
+            padding: "8px 12px",
+            display: "flex", alignItems: "center", gap: 8,
+            borderBottom: "1px solid var(--dh-border)",
+            flex: "none",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = "var(--dh-bg-hover)"}
+          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+        >
+          <i className="codicon codicon-rocket" style={{ fontSize: 14, color: "var(--dh-fg)" }} />
+          <span style={{
+            fontFamily: "var(--dh-font-ui)",
+            fontSize: 12, fontWeight: 500, color: "var(--dh-fg)", flex: 1,
+          }}>
+            AI Marketplace
+          </span>
+          <i className="codicon codicon-chevron-right" style={{ fontSize: 12, color: "var(--dh-fg-faint)" }} />
+        </div>
+      )}
+
+      {/* catalog sections */}
+      <div style={{ overflowY: "auto", flex: 1, padding: "4px 0 12px" }}>
+        {CATALOG_SECTIONS.map((section) => {
+          const open = openSet.has(section.name);
+          const filtered = section.items.filter(matchesQuery);
+          if (query && filtered.length === 0) return null;
+          return (
+            <div key={section.name}>
+              {/* section header */}
+              <div
+                onClick={() => toggleSection(section.name)}
+                style={{
+                  display: "flex", alignItems: "center",
+                  padding: "8px 12px 6px",
+                  cursor: "pointer",
+                  userSelect: "none",
+                }}
+              >
+                <i
+                  className="codicon codicon-chevron-right"
+                  style={{
+                    fontSize: 12, color: "var(--dh-fg-dim)", marginRight: 4,
+                    transform: open ? "rotate(90deg)" : "rotate(0)",
+                    transition: "transform var(--dh-duration-chevron, 120ms) ease",
+                  }}
+                />
+                <span style={{
+                  fontFamily: "var(--dh-font-ui)", fontSize: 11, fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  color: "var(--dh-fg-section)", flex: 1,
+                }}>
+                  {section.name}
+                </span>
+                <span style={{
+                  fontFamily: "var(--dh-font-ui)", fontSize: 10, fontWeight: 600,
+                  color: "#ffffff",
+                  background: "#0ea5e9",
+                  borderRadius: 999,
+                  minWidth: 18, height: 18,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  padding: "0 6px",
+                }}>
+                  {filtered.length}
+                </span>
+              </div>
+
+              {/* cards */}
+              {open && filtered.map((item, i) => (
+                <ToolCard key={item.title + i} item={item} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ToolCard({ item }) {
+  const [hover, setHover] = React.useState(false);
+  const [pinned, setPinned] = React.useState(item.pinned);
+
+  const typeColors = {
+    EXTENSION:   { bg: "#0ea5e9", fg: "#ffffff" },
+    PACKAGE:     { bg: "#0ea5e9", fg: "#ffffff" },
+    ARTIFACTORY: { bg: "#0ea5e9", fg: "#ffffff" },
+    WEB:         { bg: "#0ea5e9", fg: "#ffffff" },
+    SKILL:       { bg: "#0ea5e9", fg: "#ffffff" },
+  };
+  const tc = typeColors[item.type] || { bg: "#0ea5e9", fg: "#ffffff" };
+
+  const statusStyle = (() => {
+    if (item.status === "Installed") return { color: "#22c55e", fontStyle: "normal" };
+    if (item.status === "Coming Soon") return { color: "var(--dh-fg-dim)", fontStyle: "italic" };
+    if (item.status === "Available") return { color: "var(--dh-fg-dim)", fontStyle: "normal" };
+    return null;
+  })();
+
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        margin: "4px 8px",
+        padding: "10px 10px 8px 12px",
+        background: hover ? "var(--dh-bg-hover)" : "transparent",
+        border: "1px solid transparent",
+        borderRadius: 4,
+        display: "flex", gap: 10,
+        position: "relative",
+        transition: "background 120ms",
+      }}
+    >
+      {/* icon */}
+      <div style={{
+        width: 32, height: 32,
+        borderRadius: 6,
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid var(--dh-border)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        flex: "none",
+      }}>
+        <i
+          className={`codicon codicon-${item.icon}`}
+          style={{ fontSize: 16, color: item.iconTint || "var(--dh-fg)" }}
+        />
+      </div>
+
+      {/* body */}
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* title row */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: "var(--dh-font-ui)", fontSize: 13, fontWeight: 600,
+              color: "var(--dh-fg)", lineHeight: 1.3,
+              overflow: "hidden", textOverflow: "ellipsis",
+            }}>
+              {item.title}
+            </div>
+            <div style={{
+              fontFamily: "var(--dh-font-ui)", fontSize: 12, lineHeight: 1.4,
+              color: "var(--dh-fg-dim)",
+              marginTop: 2,
+            }}>
+              {item.desc}
+            </div>
+          </div>
+          {item.action && (
+            <button
+              style={{
+                background: "linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%)",
+                border: "1px solid #0284c7",
+                boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 1px 2px rgba(0,0,0,0.3)",
+                color: "#ffffff",
+                fontFamily: "var(--dh-font-ui)", fontSize: 11, fontWeight: 600,
+                padding: "5px 12px",
+                borderRadius: 4,
+                cursor: "pointer",
+                flex: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {item.action}
+            </button>
+          )}
+        </div>
+
+        {/* badge row */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          marginTop: 6,
+          fontFamily: "var(--dh-font-ui)", fontSize: 11,
+        }}>
+          <span style={{
+            background: "transparent",
+            color: "#38bdf8",
+            border: "1px solid #38bdf8",
+            fontWeight: 700, letterSpacing: "0.04em",
+            padding: "1px 6px",
+            borderRadius: 3,
+            fontSize: 10,
+          }}>
+            {item.type}
+          </span>
+          <span style={{ color: "var(--dh-fg-dim)" }}>{item.meta}</span>
+          {item.version && <span style={{ color: "var(--dh-fg-faint)" }}>{item.version}</span>}
+          {statusStyle && (
+            <span style={statusStyle}>{item.status}</span>
+          )}
+        </div>
+      </div>
+
+      {/* pin — bottom right */}
+      <div
+        onClick={(e) => { e.stopPropagation(); setPinned(!pinned); }}
+        title={pinned ? "unpin" : "pin"}
+        style={{
+          position: "absolute", right: 8, bottom: 8,
+          width: 20, height: 20, borderRadius: 3,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer",
+          color: pinned ? "#38bdf8" : "var(--dh-fg-faint)",
+          opacity: (hover || pinned) ? 1 : 0.45,
+          transition: "opacity 120ms, background 120ms",
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+      >
+        <i
+          className="codicon codicon-pin"
+          style={{
+            fontSize: 12,
+            transform: pinned ? "rotate(-35deg)" : "rotate(0)",
+            transition: "transform 120ms",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { MainPanel, CATALOG_SECTIONS });
+
+===== END: ui_kits/dev_hub/MainPanel.jsx =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/SettingsPanel.jsx =====
+===== SettingsPanel.jsx (Settings panel) =====
+========================================================================
+
+/* Dev Hub UI Kit — SettingsPanel (the gear-opened panel) */
+
+function SettingsPanel({ groups, onClose, onClearAll, forceRerender }) {
+  const [openSet, setOpenSet] = React.useState(new Set([0, 2]));
+
+  return (
+    <div className="dh-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <TitleBar breadcrumb={["Dev Hub", "Settings"]} onClose={onClose} />
+
+      {/* Centered Clear All Data button */}
+      <div style={{ display: "flex", justifyContent: "center", padding: "12px 10px 4px" }}>
+        <DangerButton icon="trash" onClick={onClearAll}>Clear All Data</DangerButton>
+      </div>
+      <div style={{
+        fontFamily: "var(--dh-font-ui)", fontSize: 11,
+        color: "var(--dh-fg-dim)", textAlign: "center", padding: "0 10px 10px",
+      }}>
+        resets temporary user preferences
+      </div>
+
+      <div style={{ height: 1, background: "var(--dh-border)", margin: "0 10px" }} />
+
+      <SectionLabel>Tool Visibility</SectionLabel>
+      <ToolTree groups={groups} openSet={openSet} setOpenSet={setOpenSet} forceRerender={forceRerender} />
+    </div>
+  );
+}
+
+Object.assign(window, { SettingsPanel });
+
+===== END: ui_kits/dev_hub/SettingsPanel.jsx =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/AIMarketplace.jsx =====
+===== AIMarketplace.jsx (sidebar list + overlay modal) =====
+========================================================================
+
+/* Dev Hub UI Kit — AI Marketplace sidebar list + overlay modal
+ *
+ * Sidebar: compact list of marketplace sources (name + repo path + tool count)
+ * Overlay: centered modal styled after the reference screenshot —
+ *          gradient title, subtitle, search row, category tile grid
+ */
+
+const MARKETPLACES = [
+  {
+    id: "awesome-copilot",
+    name: "Awesome GitHub Copilot",
+    repo: "github/awesome-copilot",
+    icon: "repo",
+    toolCount: 783,
+    subtitle: "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience",
+    categories: [
+      { name: "Agents",        icon: "cloud",         count: 204, color: "#a855f7", desc: "Custom agents for specialized Copilot experiences" },
+      { name: "Instructions",  icon: "file-text",     count: 177, color: "#f59e0b", desc: "Coding standards and best practices for Copilot" },
+      { name: "Skills",        icon: "zap",           count: 308, color: "#fb923c", desc: "Self-contained folders with instructions and resources" },
+      { name: "Hooks",         icon: "refresh-cw",    count: 6,   color: "#ec4899", desc: "Automated workflows triggered by agent events" },
+      { name: "Workflows",     icon: "copy",          count: 7,   color: "#22d3ee", desc: "AI-powered automations for GitHub Actions" },
+      { name: "Plugins",       icon: "plug",          count: 71,  color: "#10b981", desc: "Curated plugins organized by themes" },
+      { name: "Tools",         icon: "wrench",        count: 10,  color: "#3b82f6", desc: "MCP servers and developer tools" },
+      { name: "Learning Hub",  icon: "book-open",     count: 42,  color: "#f97316", desc: "Articles and guides to master GitHub Copilot" },
+    ],
+  },
+  {
+    id: "aoa-ai-tools",
+    name: "AOA AI Tools",
+    repo: "aoareact/aoa-ai-tools",
+    icon: "repo",
+    toolCount: 124,
+    subtitle: "Internal AI tooling, prompts, and automations curated by the AOA React team",
+    categories: [
+      { name: "Prompts",       icon: "message-square", count: 48, color: "#a855f7", desc: "Reusable prompt templates for common tasks" },
+      { name: "Agents",        icon: "cloud",          count: 22, color: "#ec4899", desc: "Specialized AOA agents" },
+      { name: "MCP Servers",   icon: "server",         count: 14, color: "#22d3ee", desc: "Model Context Protocol servers" },
+      { name: "Workflows",     icon: "copy",           count: 19, color: "#10b981", desc: "Multi-step automations for AOA workflows" },
+      { name: "Snippets",      icon: "code",           count: 21, color: "#f97316", desc: "Copy-paste AI-ready code snippets" },
+    ],
+  },
+  {
+    id: "anthropic-recipes",
+    name: "Anthropic Recipes",
+    repo: "anthropics/anthropic-cookbook",
+    icon: "repo",
+    toolCount: 96,
+    subtitle: "Official cookbook of patterns, tools, and agent recipes for Claude",
+    categories: [
+      { name: "Tool Use",      icon: "wrench",         count: 32, color: "#a855f7", desc: "Function calling and tool-use patterns" },
+      { name: "Agents",        icon: "cloud",          count: 18, color: "#f59e0b", desc: "Multi-step agent examples" },
+      { name: "Prompts",       icon: "message-square", count: 28, color: "#22d3ee", desc: "Prompt engineering templates" },
+      { name: "Evals",         icon: "graph",          count: 18, color: "#10b981", desc: "Evaluation harnesses and benchmarks" },
+    ],
+  },
+  {
+    id: "vscode-ai-extensions",
+    name: "VS Code AI Extensions",
+    repo: "microsoft/vscode-ai-extensions",
+    icon: "repo",
+    toolCount: 58,
+    subtitle: "First-party AI extensions and integrations for Visual Studio Code",
+    categories: [
+      { name: "Extensions",    icon: "package",        count: 38, color: "#a855f7", desc: "Installable AI extensions" },
+      { name: "Integrations",  icon: "plug",           count: 12, color: "#f97316", desc: "Third-party AI service integrations" },
+      { name: "Samples",       icon: "file-text",      count: 8,  color: "#22d3ee", desc: "Example projects and starter templates" },
+    ],
+  },
+];
+
+// ── Small inline icon set using codicons (fall back gracefully) ───
+
+function MKIcon({ name, size = 24, color = "currentColor" }) {
+  // Map our tile icon names to codicons present in assets/codicons/codicon.css
+  const map = {
+    cloud: "radio-tower",
+    "file-text": "file",
+    zap: "zap",
+    "refresh-cw": "sync",
+    copy: "files",
+    plug: "plug",
+    wrench: "tools",
+    "book-open": "book",
+    "message-square": "comment",
+    server: "server",
+    code: "code",
+    graph: "graph",
+    package: "package",
+    github: "repo",
+    repo: "repo",
+  };
+  return (
+    <i
+      className={`codicon codicon-${map[name] || "circle-outline"}`}
+      style={{ fontSize: size, color }}
+    />
+  );
+}
+
+// ── Sidebar list view ──────────────────────────────────────────────
+
+function AIMarketplaceList({ marketplaces, onOpen, onBack }) {
+  return (
+    <div className="dh-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <div className="dh-title-bar">
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          fontFamily: "var(--dh-font-ui)", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.08em", textTransform: "uppercase",
+          color: "var(--dh-fg-section)",
+        }}>
+          {onBack && (
+            <i
+              className="codicon codicon-arrow-left"
+              onClick={onBack}
+              style={{ fontSize: 12, cursor: "pointer", opacity: 0.7, marginRight: 2 }}
+              title="back to Dev Hub"
+            />
+          )}
+          <span style={{ opacity: 0.55 }}>Dev Hub</span>
+          <span style={{ opacity: 0.4 }}>›</span>
+          <span>AI Marketplace</span>
+        </div>
+      </div>
+
+      <SectionLabel>Sources</SectionLabel>
+
+      <div style={{ overflowY: "auto", paddingBottom: 8 }}>
+        {marketplaces.map((m) => (
+          <div
+            key={m.id}
+            onClick={() => onOpen(m)}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "6px 10px",
+              cursor: "pointer",
+              minHeight: 42,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--dh-bg-hover)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+          >
+            <i className="codicon codicon-repo" style={{ fontSize: 16, color: "var(--dh-fg-dim)", flex: "none" }} />
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+              <span style={{
+                fontFamily: "var(--dh-font-ui)", fontSize: 12, fontWeight: 500,
+                color: "var(--dh-fg)",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {m.name}
+              </span>
+              <span style={{
+                fontFamily: "var(--dh-font-mono)", fontSize: 10,
+                color: "var(--dh-fg-dim)",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                marginTop: 2,
+              }}>
+                {m.repo}
+              </span>
+            </div>
+            <span style={{
+              fontFamily: "var(--dh-font-mono)", fontSize: 10,
+              color: "var(--dh-fg-faint)", flex: "none",
+            }}>
+              {m.toolCount}
+            </span>
+            <i className="codicon codicon-chevron-right"
+               style={{ fontSize: 12, color: "var(--dh-fg-faint)", flex: "none" }} />
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: "auto",
+        borderTop: "1px solid var(--dh-border)",
+        padding: "8px 10px",
+        display: "flex", alignItems: "center", gap: 6,
+        fontSize: 11, color: "var(--dh-fg-dim)",
+        fontFamily: "var(--dh-font-ui)",
+        cursor: "pointer",
+      }}>
+        <i className="codicon codicon-add" style={{ fontSize: 12 }} />
+        Add source
+      </div>
+    </div>
+  );
+}
+
+// ── Overlay modal ──────────────────────────────────────────────────
+
+function MarketplaceOverlay({ marketplace, onClose }) {
+  const m = marketplace;
+  const [drill, setDrill] = React.useState(null); // clicked category
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") { drill ? setDrill(null) : onClose(); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, drill]);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.6)",
+      backdropFilter: "blur(2px)",
+      padding: 40,
+    }}
+    onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(1000px, 100%)",
+          maxHeight: "min(800px, 100%)",
+          background: "radial-gradient(ellipse at top, #2a1b3d 0%, #1a0f22 55%, #140a1c 100%)",
+          border: "1px solid #3a2a52",
+          borderRadius: 12,
+          boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(168,85,247,0.12)",
+          overflow: "hidden",
+          display: "flex", flexDirection: "column",
+          color: "#e9e4f5",
+          fontFamily: "var(--dh-font-ui)",
+          position: "relative",
+        }}
+      >
+        {/* close button */}
+        <button
+          onClick={onClose}
+          title="close"
+          style={{
+            position: "absolute", top: 14, right: 14, zIndex: 2,
+            width: 28, height: 28, borderRadius: 6,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.04)",
+            color: "#c9bde0", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <i className="codicon codicon-close" style={{ fontSize: 14 }} />
+        </button>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "48px 56px 56px" }}>
+          {drill ? (
+            <CategoryDetail category={drill} onBack={() => setDrill(null)} marketplace={m} />
+          ) : (
+            <OverlayHome marketplace={m} onPickCategory={setDrill} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverlayHome({ marketplace, onPickCategory }) {
+  const m = marketplace;
+  return (
+    <>
+      {/* gradient title */}
+      <h1 style={{
+        margin: 0,
+        textAlign: "center",
+        fontFamily: "var(--dh-font-ui)",
+        fontSize: 44, fontWeight: 800, lineHeight: 1.1,
+        backgroundImage: "linear-gradient(90deg, #a855f7 0%, #ec4899 100%)",
+        WebkitBackgroundClip: "text", backgroundClip: "text",
+        WebkitTextFillColor: "transparent", color: "transparent",
+        letterSpacing: "-0.02em",
+      }}>
+        {m.name}
+      </h1>
+      <p style={{
+        margin: "14px auto 28px",
+        textAlign: "center",
+        maxWidth: 560,
+        fontSize: 14, lineHeight: 1.5,
+        color: "#b9b0cc",
+      }}>
+        {m.subtitle}
+      </p>
+
+      {/* search + github row */}
+      <div style={{
+        display: "flex", justifyContent: "center", gap: 10,
+        margin: "0 auto 40px", maxWidth: 560,
+      }}>
+        <div style={{
+          flex: 1, position: "relative",
+          background: "rgba(20, 10, 30, 0.8)",
+          border: "1px solid #2f2244",
+          borderRadius: 8,
+          display: "flex", alignItems: "center",
+          padding: "0 12px",
+          height: 40,
+        }}>
+          <i className="codicon codicon-search" style={{ fontSize: 13, color: "#8a7fa6", marginRight: 8 }} />
+          <input
+            placeholder="Search all resources..."
+            style={{
+              flex: 1, background: "transparent", border: 0, outline: 0,
+              color: "#e9e4f5", fontFamily: "var(--dh-font-ui)", fontSize: 13,
+            }}
+          />
+        </div>
+        <a
+          href="#"
+          onClick={(e) => e.preventDefault()}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "0 16px", height: 40,
+            background: "rgba(20, 10, 30, 0.8)",
+            border: "1px solid #2f2244",
+            borderRadius: 8,
+            color: "#c4a7f3",
+            fontSize: 13, fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          <i className="codicon codicon-repo" style={{ fontSize: 14 }} />
+          Repo
+        </a>
+      </div>
+
+      {/* category tile grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 16,
+      }}>
+        {m.categories.map((c) => (
+          <CategoryTile key={c.name} category={c} onClick={() => onPickCategory(c)} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function CategoryTile({ category, onClick }) {
+  const c = category;
+  const [hover, setHover] = React.useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: hover ? "rgba(28, 18, 42, 0.9)" : "rgba(20, 12, 30, 0.85)",
+        border: `1px solid ${hover ? "#5a3f82" : "#2a1f3e"}`,
+        borderRadius: 10,
+        padding: "20px 22px",
+        cursor: "pointer",
+        display: "flex", flexDirection: "column", gap: 14,
+        transition: "border-color 120ms, background 120ms, transform 120ms",
+        transform: hover ? "translateY(-1px)" : "none",
+        minHeight: 150,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <MKIcon name={c.icon} size={22} color={c.color} />
+        <span style={{
+          fontSize: 17, fontWeight: 700, color: "#f2eefa", flex: 1,
+        }}>
+          {c.name}
+        </span>
+        <span style={{
+          fontSize: 22, fontWeight: 700, color: "#a855f7",
+          fontVariantNumeric: "tabular-nums",
+        }}>
+          {c.count}
+        </span>
+      </div>
+      <div style={{
+        fontSize: 13, lineHeight: 1.45,
+        color: "#a89fbe",
+      }}>
+        {c.desc}
+      </div>
+    </div>
+  );
+}
+
+function CategoryDetail({ category, onBack, marketplace }) {
+  const c = category;
+  // fabricate a few representative resources
+  const sample = Array.from({ length: Math.min(c.count, 8) }, (_, i) => ({
+    name: `${c.name.toLowerCase().replace(/\s+/g, "-")}-${String(i + 1).padStart(2, "0")}`,
+    author: ["octocat", "torvalds", "gaearon", "tj", "sindresorhus", "addyosmani"][i % 6],
+    stars: [1240, 832, 540, 298, 176, 92, 44, 12][i] || 10,
+    desc: [
+      "Opinionated starter with sensible defaults.",
+      "Lightweight, zero-config, ships today.",
+      "Battle-tested in production at scale.",
+      "Minimal dependencies, fast cold-start.",
+      "Type-safe from top to bottom.",
+      "Works offline; sync when online.",
+      "Composable primitives; drop-in ready.",
+      "Focus on DX: error messages that help.",
+    ][i],
+  }));
+
+  return (
+    <>
+      <button
+        onClick={onBack}
+        style={{
+          background: "transparent", border: 0, color: "#c4a7f3",
+          fontSize: 13, cursor: "pointer", display: "inline-flex",
+          alignItems: "center", gap: 6, padding: 0, marginBottom: 20,
+        }}
+      >
+        <i className="codicon codicon-arrow-left" style={{ fontSize: 14 }} />
+        back to {marketplace.name}
+      </button>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+        <MKIcon name={c.icon} size={28} color={c.color} />
+        <h1 style={{ margin: 0, fontSize: 30, fontWeight: 700, color: "#f2eefa" }}>
+          {c.name}
+        </h1>
+        <span style={{
+          fontSize: 24, fontWeight: 700, color: "#a855f7",
+        }}>
+          {c.count}
+        </span>
+      </div>
+      <p style={{ margin: "0 0 28px", color: "#b9b0cc", fontSize: 14, lineHeight: 1.5 }}>
+        {c.desc}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {sample.map((r) => (
+          <div key={r.name} style={{
+            display: "flex", alignItems: "center", gap: 14,
+            padding: "14px 18px",
+            background: "rgba(20, 12, 30, 0.7)",
+            border: "1px solid #2a1f3e",
+            borderRadius: 8,
+          }}>
+            <MKIcon name={c.icon} size={18} color={c.color} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: "var(--dh-font-mono)", fontSize: 13, color: "#e9e4f5", fontWeight: 500,
+              }}>
+                {r.name}
+              </div>
+              <div style={{ fontSize: 12, color: "#9a92b0", marginTop: 2 }}>
+                {r.desc} · <span style={{ color: "#7a7290" }}>by {r.author}</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#8a7fa6", fontSize: 12 }}>
+              <i className="codicon codicon-star" style={{ fontSize: 12 }} />
+              {r.stars}
+            </div>
+            <button style={{
+              background: "linear-gradient(90deg, #a855f7, #ec4899)",
+              border: 0, color: "white", fontWeight: 600, fontSize: 12,
+              padding: "6px 14px", borderRadius: 6, cursor: "pointer",
+            }}>
+              Install
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { AIMarketplaceList, MarketplaceOverlay, MARKETPLACES });
+
+===== END: ui_kits/dev_hub/AIMarketplace.jsx =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/app.jsx =====
+===== app.jsx (wiring / activity bar / theme vars) =====
+========================================================================
+
+/* Dev Hub UI Kit — sample data + interactive demo app */
+
+const DH_SAMPLE_GROUPS = [
+  {
+    name: "Debugging", icon: "bug",
+    tools: [
+      { name: "Console Logger", icon: "output", desc: "capture runtime logs", on: true },
+      { name: "Network Inspector", icon: "globe", desc: "trace HTTP requests", on: true },
+      { name: "Breakpoint Manager", icon: "debug-breakpoint", desc: "conditional breakpoints", on: false },
+      { name: "Call Stack Viewer", icon: "layers", desc: "frame inspection", on: true },
+      { name: "Memory Profiler", icon: "dashboard", desc: "heap snapshots", on: false },
+      { name: "Perf Timeline", icon: "pulse", desc: "frame-level profiling", on: false },
+    ],
+  },
+  {
+    name: "Database", icon: "database",
+    tools: [
+      { name: "Query Runner", icon: "play", desc: "execute SQL inline", on: true },
+      { name: "Schema Explorer", icon: "list-tree", desc: "browse tables + views", on: true },
+      { name: "Migration Tracker", icon: "git-branch", desc: "pending migrations", on: true },
+      { name: "Connection Pool", icon: "plug", desc: "monitor active conns", on: false },
+      { name: "Index Analyzer", icon: "graph", desc: "slow query hints", on: false },
+      { name: "Backup Manager", icon: "save", desc: "scheduled dumps", on: false },
+    ],
+  },
+  {
+    name: "API Tools", icon: "globe",
+    tools: [
+      { name: "Request Builder", icon: "arrow-right", desc: "compose + send requests", on: true },
+      { name: "Response Viewer", icon: "json", desc: "pretty JSON + headers", on: true },
+      { name: "Mock Server", icon: "server", desc: "local stub endpoints", on: false },
+      { name: "Schema Validator", icon: "verified", desc: "OpenAPI checks", on: true },
+      { name: "Auth Helper", icon: "key", desc: "tokens + bearer flows", on: false },
+      { name: "Rate Limit Inspector", icon: "watch", desc: "quota + throttling", on: false },
+    ],
+  },
+  {
+    name: "Testing", icon: "beaker",
+    tools: [
+      { name: "Test Runner", icon: "play-circle", desc: "unit + integration", on: true },
+      { name: "Coverage Report", icon: "checklist", desc: "line + branch %", on: false },
+      { name: "Snapshot Viewer", icon: "diff", desc: "diff rendered output", on: false },
+      { name: "Fixtures", icon: "file-code", desc: "manage test data", on: false },
+      { name: "E2E Recorder", icon: "device-camera-video", desc: "capture flows", on: false },
+      { name: "Assertion Log", icon: "list-ordered", desc: "trace failed checks", on: false },
+    ],
+  },
+  {
+    name: "Utilities", icon: "tools",
+    tools: [
+      { name: "JSON Formatter", icon: "json", desc: "pretty + validate", on: true },
+      { name: "Regex Tester", icon: "regex", desc: "live match preview", on: true },
+      { name: "Hash Generator", icon: "symbol-key", desc: "md5 / sha256 / etc", on: false },
+      { name: "UUID Tool", icon: "symbol-string", desc: "generate + parse", on: true },
+      { name: "Color Picker", icon: "symbol-color", desc: "eyedropper + palettes", on: false },
+      { name: "Diff Viewer", icon: "diff", desc: "text + file compare", on: false },
+    ],
+  },
+];
+
+function ActivityBar({ theme, onThemeToggle, view, onSelectView }) {
+  const items = [
+    { icon: "files", active: false },
+    { icon: "search", active: false },
+    { icon: "source-control", active: false },
+    { icon: "extensions", active: false },
+    { icon: "tools", active: true, label: "Dev Hub", id: "devhub" },
+  ];
+  return (
+    <div style={{
+      width: 48,
+      background: "var(--vscode-activityBar-background, #333333)",
+      borderRight: "1px solid var(--dh-border)",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      paddingTop: 8, gap: 4,
+    }}>
+      {items.map((it, i) => (
+        <div key={i} title={it.label || it.icon}
+             onClick={() => it.id && onSelectView && onSelectView(it.id)}
+             style={{
+               width: 48, height: 40,
+               display: "flex", alignItems: "center", justifyContent: "center",
+               borderLeft: it.active ? "2px solid var(--dh-fg)" : "2px solid transparent",
+               color: it.active ? "var(--dh-fg)" : "var(--dh-fg-dim)",
+               cursor: "pointer",
+             }}>
+          <i className={`codicon codicon-${it.icon}`} style={{ fontSize: 20 }} />
+        </div>
+      ))}
+      <div style={{ flex: 1 }} />
+      <div
+        title="toggle theme"
+        onClick={onThemeToggle}
+        style={{
+          width: 48, height: 40,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "var(--dh-fg-dim)", cursor: "pointer",
+        }}>
+        <i className={`codicon codicon-${theme === "dark" ? "color-mode" : "symbol-color"}`} style={{ fontSize: 18 }} />
+      </div>
+    </div>
+  );
+}
+
+const DARK_THEME_VARS = {
+  "--vscode-sideBar-background": "#252526",
+  "--vscode-sideBarSectionHeader-background": "#2d2d2d",
+  "--vscode-sideBarSectionHeader-foreground": "#cccccc",
+  "--vscode-sideBarSectionHeader-border": "#3a3a3a",
+  "--vscode-list-hoverBackground": "#2a2d2e",
+  "--vscode-list-activeSelectionBackground": "#37373d",
+  "--vscode-foreground": "#cccccc",
+  "--vscode-descriptionForeground": "#9d9d9d",
+  "--vscode-disabledForeground": "#6b6b6b",
+  "--vscode-panel-border": "#3a3a3a",
+  "--vscode-focusBorder": "#007fd4",
+  "--vscode-textLink-foreground": "#3794ff",
+  "--vscode-errorForeground": "#f14c4c",
+  "--vscode-button-foreground": "#ffffff",
+  "--vscode-inputValidation-errorBorder": "#be1100",
+  "--vscode-inputValidation-errorBackground": "#5a1d1d",
+  "--vscode-activityBar-background": "#333333",
+  "--vscode-input-background": "#3c3c3c",
+  "--vscode-editor-background": "#1e1e1e",
+};
+
+const LIGHT_THEME_VARS = {
+  "--vscode-sideBar-background": "#f3f3f3",
+  "--vscode-sideBarSectionHeader-background": "#eaeaea",
+  "--vscode-sideBarSectionHeader-foreground": "#1f1f1f",
+  "--vscode-sideBarSectionHeader-border": "#e5e5e5",
+  "--vscode-list-hoverBackground": "#e8e8e8",
+  "--vscode-list-activeSelectionBackground": "#d6ebff",
+  "--vscode-foreground": "#1f1f1f",
+  "--vscode-descriptionForeground": "#616161",
+  "--vscode-disabledForeground": "#a5a5a5",
+  "--vscode-panel-border": "#e5e5e5",
+  "--vscode-focusBorder": "#0090f1",
+  "--vscode-textLink-foreground": "#006ab1",
+  "--vscode-errorForeground": "#e51400",
+  "--vscode-button-foreground": "#ffffff",
+  "--vscode-inputValidation-errorBorder": "#be1100",
+  "--vscode-inputValidation-errorBackground": "#f2dede",
+  "--vscode-activityBar-background": "#2c2c2c",
+  "--vscode-input-background": "#ffffff",
+  "--vscode-editor-background": "#ffffff",
+};
+
+function App() {
+  const [theme, setTheme] = React.useState("dark");
+  const [view, setView] = React.useState("main"); // "main" | "settings" | "marketplace"
+  const [overlayMP, setOverlayMP] = React.useState(null);
+  const [groups, setGroups] = React.useState(() => JSON.parse(JSON.stringify(DH_SAMPLE_GROUPS)));
+  const [, tick] = React.useReducer((x) => x + 1, 0);
+
+  const vars = theme === "dark" ? DARK_THEME_VARS : LIGHT_THEME_VARS;
+  const varString = Object.entries(vars).map(([k, v]) => `${k}: ${v};`).join(" ");
+
+  const clearAll = () => {
+    const fresh = JSON.parse(JSON.stringify(DH_SAMPLE_GROUPS));
+    fresh.forEach((g) => g.tools.forEach((t) => { t.on = false; }));
+    setGroups(fresh);
+  };
+
+  return (
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: vars["--vscode-editor-background"] }}>
+      <style>{`:root { ${varString} }`}</style>
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        <ActivityBar
+          theme={theme}
+          onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+        />
+        <div style={{
+          width: 380, borderRight: "1px solid var(--dh-border)",
+          display: "flex", flexDirection: "column", minHeight: 0,
+          background: "var(--dh-bg-panel)",
+        }}>
+          {view === "main" && (
+            <MainPanel
+              onOpenSettings={() => setView("settings")}
+              onOpenMarketplace={() => setView("marketplace")}
+            />
+          )}
+          {view === "settings" && (
+            <SettingsPanel
+              groups={groups}
+              onClose={() => setView("main")}
+              onClearAll={clearAll}
+              forceRerender={tick}
+            />
+          )}
+          {view === "marketplace" && (
+            <AIMarketplaceList
+              marketplaces={MARKETPLACES}
+              onOpen={(m) => setOverlayMP(m)}
+              onBack={() => setView("main")}
+            />
+          )}
+        </div>
+        {/* fake editor area */}
+        <div style={{
+          flex: 1, background: "var(--vscode-editor-background)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "var(--dh-fg-faint)", fontFamily: "var(--dh-font-mono)", fontSize: 12,
+        }}>
+          editor area — click the gear in the sidebar to open settings
+        </div>
+      </div>
+      {overlayMP && (
+        <MarketplaceOverlay marketplace={overlayMP} onClose={() => setOverlayMP(null)} />
+      )}
+      {/* fake status bar */}
+      <div style={{
+        height: 22, background: theme === "dark" ? "#007acc" : "#0078d4",
+        color: "#ffffff", fontFamily: "var(--dh-font-ui)", fontSize: 12,
+        display: "flex", alignItems: "center", padding: "0 10px", gap: 12, flex: "none",
+      }}>
+        <span>main</span>
+        <span>Dev Hub</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+===== END: ui_kits/dev_hub/app.jsx =====
+
+========================================================================
+===== FILE: ui_kits/dev_hub/index.html =====
+===== index.html (entry point) =====
+========================================================================
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Dev Hub UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<link rel="stylesheet" href="../../assets/codicons/codicon.css" />
+<style>
+  html, body, #root { height: 100%; margin: 0; }
+  body { font-family: var(--dh-font-ui); }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="Primitives.jsx"></script>
+<script type="text/babel" src="ToolTree.jsx"></script>
+<script type="text/babel" src="SettingsPanel.jsx"></script>
+<script type="text/babel" src="MainPanel.jsx"></script>
+<script type="text/babel" src="AIMarketplace.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>
+
+===== END: ui_kits/dev_hub/index.html =====
+
+========================================================================
+END OF SPEC
+========================================================================
