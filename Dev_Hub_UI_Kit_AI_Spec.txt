@@ -16,7 +16,8 @@ TABLE OF CONTENTS
 2. Design tokens (colors, type, spacing)
 3. Panel anatomy (ASCII wireframes)
 4. Component catalog
-5. Source files (CSS + JSX + HTML)
+5. AI Marketplace: search + resource preview behavior
+6. Source files (CSS + JSX + HTML)
 
 ========================================================================
 1. HIGH-LEVEL OVERVIEW
@@ -32,6 +33,8 @@ sidebar column:
 
 Clicking a marketplace source opens a centered overlay modal on top of
 the editor (dark radial purple, gradient title, category tiles).
+The overlay supports type-ahead search across all categories, drilling
+into a category, and opening a resource for preview.
 
 All colors derive from VS Code theme tokens (--vscode-*) so the UI
 adapts to light + dark themes. Fonts: 'Segoe UI' (ui) and
@@ -58,161 +61,143 @@ Key colors (dark theme resolved values):
   --dh-danger         #f14c4c   destructive text
   --dh-danger-bg      #5a1d1d   destructive bg
 
-Accent (action buttons + type tags, NOT theme-derived):
+Accent (action buttons + type tags):
   sky-500  #0ea5e9   solid button / count pill
   sky-400  #38bdf8   gradient top + tag border/text
   sky-700  #0284c7   button border
 
-Section count pills: background #0ea5e9, text #ffffff, border-radius 999,
-min-width 18px, height 18px.
-
-Type scale (all use --dh-font-ui = Segoe UI stack):
-  title bar      11px / 600 / uppercase / letter-spacing .08em
-  card title     13px / 600
-  card desc      12px / 400 / --dh-fg-dim
-  type tag       10px / 700 / uppercase / letter-spacing .04em
-  badge count    10px / 600
-  meta           11px / 400 / --dh-fg-dim
-
-Monospace (--dh-font-mono = SF Mono stack) used for:
-  - repo paths in marketplace sidebar  (10px / --dh-fg-dim)
-  - resource names in overlay detail view (13px)
-
-Spacing:
-  row vertical padding      4-6px
-  card padding              10px 10px 8px 12px
-  card margin               4px 8px
-  title bar padding         10px 12px
-  search padding            10px 12px
-  section header padding    8px 12px 6px
-
-Radii:
-  card / row                4px
-  icon tile                 6px (32x32)
-  overlay modal             12px
-  button                    4px
-
-Transitions:
-  row bg                    120ms
-  chevron rotate            120ms
-  pin rotate                120ms
+Marketplace overlay palette (purple/pink, fixed):
+  bg gradient    radial-gradient(ellipse at top, #2a1b3d 0%, #1a0f22 55%, #140a1c 100%)
+  title          linear-gradient(90deg, #a855f7, #ec4899) (text)
+  card bg        rgba(20, 12, 30, 0.85) -> 0.9 hover
+  card border    #2a1f3e -> #5a3f82 hover
+  fg primary     #f2eefa    secondary #b9b0cc / #a89fbe   muted #8a7fa6
+  Install button linear-gradient(90deg, #a855f7, #ec4899)
+  selected file  bg rgba(168, 85, 247, 0.18), 2px left border #a855f7
+  highlight span bg rgba(168, 85, 247, 0.25) (search match)
 
 ========================================================================
 3. PANEL ANATOMY
 ========================================================================
 
-MainPanel (AEP DEV HUB: TOOL CATALOG)
---------------------------------------
+MainPanel - 380px wide
+  title bar with refresh + gear, search input, AI Marketplace nav row,
+  collapsible sections (FAVORITES, AVAILABLE, MOBILE PROMPTS) with cyan
+  count pills. ToolCard has 32x32 icon tile, title+desc, sky gradient
+  action button top-right, type tag + meta + status row, pin bottom-right.
 
-  +--------------------------------------------------+
-  | AEP DEV HUB: TOOL CATALOG   [refresh] [gear]     |  title bar
-  +--------------------------------------------------+
-  | [ search tools...                             ]  |  search
-  +--------------------------------------------------+
-  | [rocket] AI Marketplace                      >   |  nav row
-  +--------------------------------------------------+
-  | v FAVORITES                               (4)    |  section header
-  |  +--------------------------------------------+  |
-  |  |[ic] AEP Copilot Tools        [Reinstall]   |  |
-  |  |     AI-powered UI dev assistant for AEP    |  |
-  |  |     [EXTENSION] Extensions v1.2.0 Installed|  |
-  |  |                                     [pin]  |  |  pin bottom-right
-  |  +--------------------------------------------+  |
-  |  ... more cards                                  |
-  |                                                  |
-  | v AVAILABLE                               (4)    |
-  | v MOBILE PROMPTS                          (1)    |
-  +--------------------------------------------------+
+AIMarketplace sidebar list (rocket row in main panel)
+  title bar with back button, "SOURCES" label, list rows of marketplaces
+  (repo icon + name + mono repo path + count + chevron), "Add source"
+  footer.
 
-Card anatomy (ToolCard):
-  - 32x32 rounded icon tile on left (bg rgba(255,255,255,0.04), 6px radius)
-  - title (13px / 600) + desc (12px / dim)
-  - action button top-right: sky gradient fill, white text, 4px radius
-  - meta row: outlined sky type tag + category + version + status
-  - pin icon at bottom-right corner (12px, rotates -35deg when pinned)
-  - hover: bg --dh-bg-hover
+Overlay modal - 1100px x 780px, centered with three view states:
 
-Status styles:
-  "Installed"     -> green #22c55e
-  "Coming Soon"   -> dim italic
-  "Available"     -> dim regular
+HOME view:
+  - 44px gradient title (purple -> pink) + 14px subtitle
+  - search input + Repo button row (40px tall, max-width 560)
+  - empty query: 3-col grid of category tiles (icon + name + count + desc)
+  - non-empty: SearchResults list
 
-SettingsPanel (opened via gear icon)
-------------------------------------
-- Breadcrumb: [x] DEV HUB > SETTINGS
-- Centered "Clear All Data" outlined danger button
-- Same width as main (380px)
+CATEGORY view (drill-in):
+  - back -> home
+  - 28px icon + 30px title + count
+  - vertical list of resources. Each row:
+      [icon] mono filename
+             desc - by author
+      [N files / 1 file]   [stars]   [Install gradient pill]   <-- install lives HERE
 
-AIMarketplace sidebar list (opened via rocket row)
----------------------------------------------------
-- Breadcrumb: [back] DEV HUB > AI MARKETPLACE
-- Section label: SOURCES
-- List of marketplace sources. Each row:
-    [repo icon]  Name            count  >
-                 owner/repo-path
-- "Add source" affordance at bottom
-
-Overlay modal (opens when you click a marketplace source)
-----------------------------------------------------------
-- 1000px wide, centered, on rgba(0,0,0,0.6) backdrop with 2px blur
-- Radial purple gradient bg:
-    radial-gradient(ellipse at top,
-                    #2a1b3d 0%, #1a0f22 55%, #140a1c 100%)
-- Title: 44px / 800, gradient text (#a855f7 -> #ec4899)
-- Subtitle: 14px, muted #b9b0cc
-- Search box + "Repo" link row, 40px tall each
-- 3-column grid of category tiles:
-    - tinted outline icon (24px)
-    - category name (17 / 700)
-    - count (22 / 700 / #a855f7)
-    - two-line description (13 / dim purple)
-    - hover: lift 1px, border brightens
-- Click a tile -> detail view with resource list + Install buttons
-- Close: [x] top-right OR Esc key OR click backdrop
-
-ActivityBar (left strip, 48px)
-------------------------------
-Files, Search, Source Control, Extensions, [Tools = Dev Hub active]
-+ bottom: color-mode toggle
+RESOURCE view (clicked from a result OR a category list):
+  - Top: back + icon + name + meta + star
+    (NO Install button on the resource preview page)
+  - single-file: full-width FilePreview
+  - multi-file: 240px FileTree on left + FilePreview on right
 
 ========================================================================
 4. COMPONENT CATALOG
 ========================================================================
 
 Reusable primitives (Primitives.jsx):
-  - Checkbox         styled VS Code checkbox with codicon-check
-  - IconButton       24x24 transparent hover-bg button with codicon
-  - DangerButton     outlined #f14c4c text+border, hover fills
-  - SectionLabel     11px uppercase muted section header
-  - TitleBar         flex row with title + optional close (x) button
+  Checkbox, IconButton, DangerButton, SectionLabel, TitleBar
 
 Composed views:
-  - MainPanel           catalog (title bar + search + sections + cards)
-  - SettingsPanel       clear-all-data centered card
-  - AIMarketplaceList   sidebar list of marketplace sources
-  - MarketplaceOverlay  centered modal with category grid + detail view
-  - ActivityBar         48px left strip
+  MainPanel             catalog
+  SettingsPanel         clear-all-data centered
+  AIMarketplaceList     sidebar list of marketplace sources
+  MarketplaceOverlay    modal with home/category/resource view stack
+    OverlayHome           gradient title + search + tiles OR results
+    SearchResults         flat list of cross-category type-ahead matches
+    CategoryTile          icon + name + count + desc
+    CategoryDetail        list of resources WITH PER-ROW INSTALL BUTTONS
+    ResourcePreview       single-file OR split tree+preview, NO install in header
+    FileTree              recursive folder/file tree
+    TreeNode              one row of the tree
+    FilePreview           breadcrumb + extension chip + <pre> body
 
 Data shapes:
   CATALOG item      { icon, iconTint, title, desc, type, meta, version,
                       status, action, pinned }
   MARKETPLACE       { id, name, repo, icon:"repo", toolCount, subtitle,
                       categories: [{name, icon, count, color, desc}] }
-
-Action-button copy cases:
-  "Reinstall" (Installed)   "Download" (not installed)
-  "Open"      (Web)          "Install" (Skill / Plugin)
-  null        (Coming Soon - show italic status instead, no button)
+  RESOURCE          { uid, marketplaceId, marketplaceName, categoryName,
+                      categoryIcon, categoryColor, slug, name, author,
+                      stars, desc, kind: "single"|"multi",
+                      files: [{path, type:"file", content}] }
 
 Type tags currently in use:
   EXTENSION  PACKAGE  ARTIFACTORY  WEB  SKILL  AGENTPLUGIN
 
 ========================================================================
-5. SOURCE FILES
+5. AI MARKETPLACE: SEARCH + RESOURCE PREVIEW
 ========================================================================
 
-All files below are inlined verbatim. Each file starts with a
-===== FILE: <path> ===== marker and ends with ===== END: <path> =====.
+Type-ahead search (OverlayHome)
+  - Match fields: name, desc, categoryName, author (case-insensitive substring)
+  - Capped at 20 results
+  - Results show icon + mono name (highlighted) + desc (highlighted) +
+    outlined category tag + file count
+  - Empty-state: 'No results for "<query>".'
+
+Resource preview (ResourcePreview)
+  Shape decision is driven by resource.kind:
+    "single" -> one full-width FilePreview pane (no tree)
+    "multi"  -> 240px FileTree on left, FilePreview on right
+
+  Header (always present):
+    [back] [category icon] mono filename
+                           category - by author - "single file" | "N files"
+    [stars]
+    -> NO Install button here. Install lives on the category list rows.
+
+  FileTree (multi only):
+    - 240px wide, dark purple bg, "FILES" label
+    - Folders sort first then alphabetical
+    - Selected file: purple-tinted bg + 2px left border #a855f7
+    - Click folder toggles expand; click file selects it
+
+  FilePreview:
+    - Top strip: file icon + path (mono) + extension chip on the right
+    - Body: <pre> with whiteSpace:pre-wrap, mono, dark bg
+    - Md files render slightly brighter than code files
+
+State:
+  - MarketplaceOverlay holds a single "view" object: {kind, ...}
+  - Esc backs out one level
+  - Selected file resets to files[0] when a new resource is chosen
+
+Mock corpus (RESOURCE_CORPUS in AIMarketplace.jsx):
+  - Up to 6 resources per (marketplace, category) pair
+  - Single-file categories: Instructions, Prompts, Snippets, Hooks
+  - Multi-file categories:  Agents, Skills, Plugins, Tools, Workflows,
+                            MCP Servers, Extensions, Integrations,
+                            Samples, Tool Use, Evals, Learning Hub
+  - Multi-file scaffolding: README.md, config.json, instructions.md,
+                            src/main.ts, src/helpers.ts,
+                            prompts/system.md, prompts/user.md
+
+========================================================================
+6. SOURCE FILES
+========================================================================
 
 
 ========================================================================
@@ -953,14 +938,16 @@ Object.assign(window, { SettingsPanel });
 
 ========================================================================
 ===== FILE: ui_kits/dev_hub/AIMarketplace.jsx =====
-===== AIMarketplace.jsx (sidebar list + overlay modal) =====
+===== AIMarketplace.jsx (sidebar list + overlay modal + search + preview) =====
 ========================================================================
 
 /* Dev Hub UI Kit — AI Marketplace sidebar list + overlay modal
  *
- * Sidebar: compact list of marketplace sources (name + repo path + tool count)
- * Overlay: centered modal styled after the reference screenshot —
- *          gradient title, subtitle, search row, category tile grid
+ * Sidebar: compact list of marketplace sources
+ * Overlay: centered modal with
+ *   - Home: gradient title + type-ahead search + category tile grid
+ *   - Category drill: list of resources in a category
+ *   - Resource preview: single-file OR split folder-nav + file-preview
  */
 
 const MARKETPLACES = [
@@ -1026,10 +1013,86 @@ const MARKETPLACES = [
   },
 ];
 
-// ── Small inline icon set using codicons (fall back gracefully) ───
+// ── Build a flat search corpus across all categories ──────────────
+//
+// Each resource is either a "single" (one-file) or "multi" (folder).
+// Mock content is generated deterministically so the preview looks real.
+
+function makeResourceCorpus() {
+  const out = [];
+  const authors = ["octocat", "torvalds", "gaearon", "tj", "sindresorhus", "addyosmani", "kentcdodds", "yyx990803"];
+  const descs = [
+    "Opinionated starter with sensible defaults.",
+    "Lightweight, zero-config, ships today.",
+    "Battle-tested in production at scale.",
+    "Minimal dependencies, fast cold-start.",
+    "Type-safe from top to bottom.",
+    "Works offline; sync when online.",
+    "Composable primitives; drop-in ready.",
+    "Focus on DX: error messages that help.",
+  ];
+  let uid = 0;
+
+  const singleFileCats = new Set(["Instructions", "Prompts", "Snippets", "Hooks"]);
+  const multiFileCats  = new Set(["Agents", "Skills", "Plugins", "Tools", "Workflows", "MCP Servers", "Extensions", "Integrations", "Samples", "Tool Use", "Evals", "Learning Hub"]);
+
+  for (const m of MARKETPLACES) {
+    for (const c of m.categories) {
+      const n = Math.min(c.count, 6); // cap to 6 shown
+      for (let i = 0; i < n; i++) {
+        const slug = `${c.name.toLowerCase().replace(/\s+/g, "-")}-${String(i + 1).padStart(2, "0")}`;
+        const isSingle = singleFileCats.has(c.name);
+        const author = authors[(uid + i) % authors.length];
+        const desc = descs[i % descs.length];
+        const resource = {
+          uid: `r${uid++}`,
+          marketplaceId: m.id,
+          marketplaceName: m.name,
+          categoryName: c.name,
+          categoryIcon: c.icon,
+          categoryColor: c.color,
+          slug,
+          name: slug,
+          author,
+          stars: [1240, 832, 540, 298, 176, 92, 44, 12][i % 8],
+          desc,
+          kind: isSingle ? "single" : "multi",
+          files: isSingle ? buildSingleFile(c.name, slug) : buildMultiFiles(c.name, slug),
+        };
+        out.push(resource);
+      }
+    }
+  }
+  return out;
+}
+
+function buildSingleFile(catName, slug) {
+  const ext = catName === "Snippets" ? "ts" : "md";
+  const name = `${slug}.${ext}`;
+  const content = ext === "md"
+    ? `# ${slug}\n\n> Category: ${catName}\n\nA reusable ${catName.toLowerCase()} template.\n\n## Usage\n\nDrop into your repo and reference from your agent config.\n\n## Example\n\n\`\`\`\nYou are an expert ${catName.toLowerCase()} assistant.\nFollow the team style guide at all times.\nFavor small, composable changes over large rewrites.\n\`\`\`\n`
+    : `// ${slug}.${ext}\n// Category: ${catName}\n\nexport function run(input: string): string {\n  // TODO: customize\n  return input.trim();\n}\n`;
+  return [{ path: name, type: "file", content }];
+}
+
+function buildMultiFiles(catName, slug) {
+  const files = [
+    { path: "README.md", type: "file", content: `# ${slug}\n\nCategory: ${catName}\n\nA multi-file ${catName.toLowerCase()} with instructions and resources.\n\n## Structure\n\n- \`README.md\` — this file\n- \`config.json\` — runtime configuration\n- \`instructions.md\` — agent instructions\n- \`src/main.ts\` — entrypoint\n- \`src/helpers.ts\` — utilities\n- \`prompts/system.md\` — system prompt\n- \`prompts/user.md\` — user prompt template\n` },
+    { path: "config.json", type: "file", content: `{\n  "name": "${slug}",\n  "category": "${catName}",\n  "version": "0.1.0",\n  "entry": "src/main.ts",\n  "model": "claude-haiku-4-5",\n  "temperature": 0.2\n}\n` },
+    { path: "instructions.md", type: "file", content: `# Instructions\n\nYou are a ${catName.toLowerCase()} for the Dev Hub extension.\n\n## Rules\n\n1. Be concise.\n2. Prefer existing primitives over new ones.\n3. Ask before adding content.\n` },
+    { path: "src/main.ts", type: "file", content: `import { helpers } from "./helpers";\n\nexport async function main(input: string) {\n  const cleaned = helpers.clean(input);\n  return helpers.respond(cleaned);\n}\n` },
+    { path: "src/helpers.ts", type: "file", content: `export const helpers = {\n  clean(s: string) {\n    return s.trim().replace(/\\s+/g, " ");\n  },\n  respond(s: string) {\n    return \`ok: \${s}\`;\n  },\n};\n` },
+    { path: "prompts/system.md", type: "file", content: `You are operating inside the AEP Dev Hub extension.\nStay on task. Never fabricate APIs.\n` },
+    { path: "prompts/user.md", type: "file", content: `User task: {{input}}\n\nRelevant context:\n- File: {{file}}\n- Selection: {{selection}}\n` },
+  ];
+  return files;
+}
+
+const RESOURCE_CORPUS = makeResourceCorpus();
+
+// ── Small inline icon set using codicons ──────────────────────────
 
 function MKIcon({ name, size = 24, color = "currentColor" }) {
-  // Map our tile icon names to codicons present in assets/codicons/codicon.css
   const map = {
     cloud: "radio-tower",
     "file-text": "file",
@@ -1147,13 +1210,24 @@ function AIMarketplaceList({ marketplaces, onOpen, onBack }) {
 
 function MarketplaceOverlay({ marketplace, onClose }) {
   const m = marketplace;
-  const [drill, setDrill] = React.useState(null); // clicked category
+  // stack: [{kind:"home"} | {kind:"category", category} | {kind:"resource", resource}]
+  const [view, setView] = React.useState({ kind: "home" });
 
   React.useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { drill ? setDrill(null) : onClose(); } };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        if (view.kind !== "home") setView({ kind: "home" });
+        else onClose();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, drill]);
+  }, [onClose, view]);
+
+  const corpusForMarketplace = React.useMemo(
+    () => RESOURCE_CORPUS.filter((r) => r.marketplaceId === m.id),
+    [m.id]
+  );
 
   return (
     <div style={{
@@ -1167,8 +1241,8 @@ function MarketplaceOverlay({ marketplace, onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "min(1000px, 100%)",
-          maxHeight: "min(800px, 100%)",
+          width: "min(1100px, 100%)",
+          height: "min(780px, 100%)",
           background: "radial-gradient(ellipse at top, #2a1b3d 0%, #1a0f22 55%, #140a1c 100%)",
           border: "1px solid #3a2a52",
           borderRadius: 12,
@@ -1180,7 +1254,6 @@ function MarketplaceOverlay({ marketplace, onClose }) {
           position: "relative",
         }}
       >
-        {/* close button */}
         <button
           onClick={onClose}
           title="close"
@@ -1196,11 +1269,34 @@ function MarketplaceOverlay({ marketplace, onClose }) {
           <i className="codicon codicon-close" style={{ fontSize: 14 }} />
         </button>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "48px 56px 56px" }}>
-          {drill ? (
-            <CategoryDetail category={drill} onBack={() => setDrill(null)} marketplace={m} />
-          ) : (
-            <OverlayHome marketplace={m} onPickCategory={setDrill} />
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {view.kind === "home" && (
+            <OverlayHome
+              marketplace={m}
+              corpus={corpusForMarketplace}
+              onPickCategory={(category) => setView({ kind: "category", category })}
+              onPickResource={(resource) => setView({ kind: "resource", resource })}
+            />
+          )}
+          {view.kind === "category" && (
+            <CategoryDetail
+              category={view.category}
+              marketplace={m}
+              corpus={corpusForMarketplace}
+              onBack={() => setView({ kind: "home" })}
+              onPickResource={(resource) => setView({ kind: "resource", resource })}
+            />
+          )}
+          {view.kind === "resource" && (
+            <ResourcePreview
+              resource={view.resource}
+              marketplace={m}
+              onBack={() => {
+                // back to category if known, else home
+                const cat = m.categories.find((c) => c.name === view.resource.categoryName);
+                setView(cat ? { kind: "category", category: cat } : { kind: "home" });
+              }}
+            />
           )}
         </div>
       </div>
@@ -1208,15 +1304,30 @@ function MarketplaceOverlay({ marketplace, onClose }) {
   );
 }
 
-function OverlayHome({ marketplace, onPickCategory }) {
+// ── Overlay: home (title + type-ahead search + tiles) ─────────────
+
+function OverlayHome({ marketplace, corpus, onPickCategory, onPickResource }) {
   const m = marketplace;
+  const [query, setQuery] = React.useState("");
+  const q = query.trim().toLowerCase();
+
+  // Cross-category type-ahead: match against resource + category
+  const results = React.useMemo(() => {
+    if (!q) return [];
+    return corpus
+      .filter((r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.desc.toLowerCase().includes(q) ||
+        r.categoryName.toLowerCase().includes(q) ||
+        r.author.toLowerCase().includes(q)
+      )
+      .slice(0, 20);
+  }, [q, corpus]);
+
   return (
-    <>
-      {/* gradient title */}
+    <div style={{ flex: 1, overflowY: "auto", padding: "48px 56px 56px" }}>
       <h1 style={{
-        margin: 0,
-        textAlign: "center",
-        fontFamily: "var(--dh-font-ui)",
+        margin: 0, textAlign: "center",
         fontSize: 44, fontWeight: 800, lineHeight: 1.1,
         backgroundImage: "linear-gradient(90deg, #a855f7 0%, #ec4899 100%)",
         WebkitBackgroundClip: "text", backgroundClip: "text",
@@ -1226,19 +1337,15 @@ function OverlayHome({ marketplace, onPickCategory }) {
         {m.name}
       </h1>
       <p style={{
-        margin: "14px auto 28px",
-        textAlign: "center",
-        maxWidth: 560,
-        fontSize: 14, lineHeight: 1.5,
-        color: "#b9b0cc",
+        margin: "14px auto 28px", textAlign: "center", maxWidth: 560,
+        fontSize: 14, lineHeight: 1.5, color: "#b9b0cc",
       }}>
         {m.subtitle}
       </p>
 
-      {/* search + github row */}
       <div style={{
         display: "flex", justifyContent: "center", gap: 10,
-        margin: "0 auto 40px", maxWidth: 560,
+        margin: "0 auto 8px", maxWidth: 560, position: "relative",
       }}>
         <div style={{
           flex: 1, position: "relative",
@@ -1251,12 +1358,21 @@ function OverlayHome({ marketplace, onPickCategory }) {
         }}>
           <i className="codicon codicon-search" style={{ fontSize: 13, color: "#8a7fa6", marginRight: 8 }} />
           <input
-            placeholder="Search all resources..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search agents, skills, prompts, plugins..."
             style={{
               flex: 1, background: "transparent", border: 0, outline: 0,
               color: "#e9e4f5", fontFamily: "var(--dh-font-ui)", fontSize: 13,
             }}
           />
+          {query && (
+            <i
+              className="codicon codicon-close"
+              onClick={() => setQuery("")}
+              style={{ fontSize: 12, color: "#8a7fa6", cursor: "pointer" }}
+            />
+          )}
         </div>
         <a
           href="#"
@@ -1266,10 +1382,8 @@ function OverlayHome({ marketplace, onPickCategory }) {
             padding: "0 16px", height: 40,
             background: "rgba(20, 10, 30, 0.8)",
             border: "1px solid #2f2244",
-            borderRadius: 8,
-            color: "#c4a7f3",
-            fontSize: 13, fontWeight: 600,
-            textDecoration: "none",
+            borderRadius: 8, color: "#c4a7f3",
+            fontSize: 13, fontWeight: 600, textDecoration: "none",
           }}
         >
           <i className="codicon codicon-repo" style={{ fontSize: 14 }} />
@@ -1277,16 +1391,100 @@ function OverlayHome({ marketplace, onPickCategory }) {
         </a>
       </div>
 
-      {/* category tile grid */}
+      {q ? (
+        <SearchResults results={results} onPick={onPickResource} query={q} />
+      ) : (
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16, marginTop: 32,
+        }}>
+          {m.categories.map((c) => (
+            <CategoryTile key={c.name} category={c} onClick={() => onPickCategory(c)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchResults({ results, onPick, query }) {
+  if (results.length === 0) {
+    return (
       <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 16,
+        marginTop: 40, textAlign: "center",
+        color: "#8a7fa6", fontSize: 13,
       }}>
-        {m.categories.map((c) => (
-          <CategoryTile key={c.name} category={c} onClick={() => onPickCategory(c)} />
-        ))}
+        No results for "{query}".
       </div>
+    );
+  }
+  return (
+    <div style={{
+      marginTop: 24,
+      display: "flex", flexDirection: "column", gap: 6,
+    }}>
+      <div style={{
+        fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase",
+        color: "#8a7fa6", fontWeight: 600, marginBottom: 4,
+      }}>
+        {results.length} result{results.length === 1 ? "" : "s"}
+      </div>
+      {results.map((r) => (
+        <div
+          key={r.uid}
+          onClick={() => onPick(r)}
+          style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "10px 14px",
+            background: "rgba(20, 12, 30, 0.7)",
+            border: "1px solid #2a1f3e",
+            borderRadius: 8,
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = "#5a3f82"}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = "#2a1f3e"}
+        >
+          <MKIcon name={r.categoryIcon} size={16} color={r.categoryColor} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: "var(--dh-font-mono)", fontSize: 13,
+              color: "#e9e4f5", fontWeight: 500,
+            }}>
+              {highlight(r.name, query)}
+            </div>
+            <div style={{ fontSize: 11, color: "#9a92b0", marginTop: 2 }}>
+              {highlight(r.desc, query)}
+            </div>
+          </div>
+          <div style={{
+            fontSize: 10, fontWeight: 600, letterSpacing: "0.04em",
+            color: r.categoryColor, border: `1px solid ${r.categoryColor}55`,
+            padding: "2px 6px", borderRadius: 3, whiteSpace: "nowrap",
+          }}>
+            {r.categoryName.toUpperCase()}
+          </div>
+          <div style={{
+            fontSize: 10, color: "#7a7290", whiteSpace: "nowrap",
+          }}>
+            {r.kind === "single" ? "1 file" : `${r.files.length} files`}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q);
+  if (idx < 0) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span style={{ background: "rgba(168, 85, 247, 0.25)", color: "#f2eefa" }}>
+        {text.slice(idx, idx + q.length)}
+      </span>
+      {text.slice(idx + q.length)}
     </>
   );
 }
@@ -1313,9 +1511,7 @@ function CategoryTile({ category, onClick }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <MKIcon name={c.icon} size={22} color={c.color} />
-        <span style={{
-          fontSize: 17, fontWeight: 700, color: "#f2eefa", flex: 1,
-        }}>
+        <span style={{ fontSize: 17, fontWeight: 700, color: "#f2eefa", flex: 1 }}>
           {c.name}
         </span>
         <span style={{
@@ -1325,37 +1521,21 @@ function CategoryTile({ category, onClick }) {
           {c.count}
         </span>
       </div>
-      <div style={{
-        fontSize: 13, lineHeight: 1.45,
-        color: "#a89fbe",
-      }}>
+      <div style={{ fontSize: 13, lineHeight: 1.45, color: "#a89fbe" }}>
         {c.desc}
       </div>
     </div>
   );
 }
 
-function CategoryDetail({ category, onBack, marketplace }) {
+// ── Category drill-in ─────────────────────────────────────────────
+
+function CategoryDetail({ category, marketplace, corpus, onBack, onPickResource }) {
   const c = category;
-  // fabricate a few representative resources
-  const sample = Array.from({ length: Math.min(c.count, 8) }, (_, i) => ({
-    name: `${c.name.toLowerCase().replace(/\s+/g, "-")}-${String(i + 1).padStart(2, "0")}`,
-    author: ["octocat", "torvalds", "gaearon", "tj", "sindresorhus", "addyosmani"][i % 6],
-    stars: [1240, 832, 540, 298, 176, 92, 44, 12][i] || 10,
-    desc: [
-      "Opinionated starter with sensible defaults.",
-      "Lightweight, zero-config, ships today.",
-      "Battle-tested in production at scale.",
-      "Minimal dependencies, fast cold-start.",
-      "Type-safe from top to bottom.",
-      "Works offline; sync when online.",
-      "Composable primitives; drop-in ready.",
-      "Focus on DX: error messages that help.",
-    ][i],
-  }));
+  const items = corpus.filter((r) => r.categoryName === c.name);
 
   return (
-    <>
+    <div style={{ flex: 1, overflowY: "auto", padding: "48px 56px 56px" }}>
       <button
         onClick={onBack}
         style={{
@@ -1368,14 +1548,12 @@ function CategoryDetail({ category, onBack, marketplace }) {
         back to {marketplace.name}
       </button>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
         <MKIcon name={c.icon} size={28} color={c.color} />
         <h1 style={{ margin: 0, fontSize: 30, fontWeight: 700, color: "#f2eefa" }}>
           {c.name}
         </h1>
-        <span style={{
-          fontSize: 24, fontWeight: 700, color: "#a855f7",
-        }}>
+        <span style={{ fontSize: 24, fontWeight: 700, color: "#a855f7" }}>
           {c.count}
         </span>
       </div>
@@ -1384,18 +1562,25 @@ function CategoryDetail({ category, onBack, marketplace }) {
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {sample.map((r) => (
-          <div key={r.name} style={{
-            display: "flex", alignItems: "center", gap: 14,
-            padding: "14px 18px",
-            background: "rgba(20, 12, 30, 0.7)",
-            border: "1px solid #2a1f3e",
-            borderRadius: 8,
-          }}>
+        {items.map((r) => (
+          <div
+            key={r.uid}
+            onClick={() => onPickResource(r)}
+            style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "14px 18px",
+              background: "rgba(20, 12, 30, 0.7)",
+              border: "1px solid #2a1f3e",
+              borderRadius: 8, cursor: "pointer",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#5a3f82"}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#2a1f3e"}
+          >
             <MKIcon name={c.icon} size={18} color={c.color} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: "var(--dh-font-mono)", fontSize: 13, color: "#e9e4f5", fontWeight: 500,
+                fontFamily: "var(--dh-font-mono)", fontSize: 13,
+                color: "#e9e4f5", fontWeight: 500,
               }}>
                 {r.name}
               </div>
@@ -1403,21 +1588,237 @@ function CategoryDetail({ category, onBack, marketplace }) {
                 {r.desc} · <span style={{ color: "#7a7290" }}>by {r.author}</span>
               </div>
             </div>
+            <div style={{
+              fontSize: 10, color: "#7a7290", whiteSpace: "nowrap",
+            }}>
+              {r.kind === "single" ? "1 file" : `${r.files.length} files`}
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#8a7fa6", fontSize: 12 }}>
               <i className="codicon codicon-star" style={{ fontSize: 12 }} />
               {r.stars}
             </div>
-            <button style={{
-              background: "linear-gradient(90deg, #a855f7, #ec4899)",
-              border: 0, color: "white", fontWeight: 600, fontSize: 12,
-              padding: "6px 14px", borderRadius: 6, cursor: "pointer",
-            }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); }}
+              style={{
+                background: "linear-gradient(90deg, #a855f7, #ec4899)",
+                border: 0, color: "white", fontWeight: 600, fontSize: 12,
+                padding: "6px 14px", borderRadius: 6, cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
               Install
             </button>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Resource preview (single-file OR folder + preview) ────────────
+
+function ResourcePreview({ resource, marketplace, onBack }) {
+  const r = resource;
+  const isMulti = r.kind === "multi";
+  const [selected, setSelected] = React.useState(r.files[0]);
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      {/* Header */}
+      <div style={{
+        padding: "20px 32px 14px",
+        borderBottom: "1px solid #2a1f3e",
+        display: "flex", alignItems: "center", gap: 14,
+        flex: "none",
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: "transparent", border: 0, color: "#c4a7f3",
+            fontSize: 13, cursor: "pointer", display: "inline-flex",
+            alignItems: "center", gap: 6, padding: 0, marginRight: 4,
+          }}
+        >
+          <i className="codicon codicon-arrow-left" style={{ fontSize: 14 }} />
+        </button>
+        <MKIcon name={r.categoryIcon} size={20} color={r.categoryColor} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "var(--dh-font-mono)", fontSize: 15, fontWeight: 600,
+            color: "#f2eefa",
+          }}>
+            {r.name}
+          </div>
+          <div style={{ fontSize: 12, color: "#9a92b0", marginTop: 2 }}>
+            {r.categoryName} · by {r.author} · {isMulti ? `${r.files.length} files` : "single file"}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#8a7fa6", fontSize: 12, marginRight: 40 }}>
+          <i className="codicon codicon-star" style={{ fontSize: 12 }} />
+          {r.stars}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        {isMulti && (
+          <FileTree
+            files={r.files}
+            selectedPath={selected.path}
+            onSelect={(f) => setSelected(f)}
+          />
+        )}
+        <FilePreview file={selected} />
+      </div>
+    </div>
+  );
+}
+
+function FileTree({ files, selectedPath, onSelect }) {
+  // Build a nested structure from flat paths
+  const root = React.useMemo(() => {
+    const r = { name: "", path: "", children: new Map(), file: null };
+    for (const f of files) {
+      const parts = f.path.split("/");
+      let node = r;
+      parts.forEach((part, i) => {
+        const isLeaf = i === parts.length - 1;
+        const key = parts.slice(0, i + 1).join("/");
+        if (!node.children.has(key)) {
+          node.children.set(key, {
+            name: part,
+            path: key,
+            children: new Map(),
+            file: isLeaf ? f : null,
+          });
+        }
+        node = node.children.get(key);
+      });
+    }
+    return r;
+  }, [files]);
+
+  return (
+    <div style={{
+      width: 240, flex: "none",
+      background: "rgba(15, 8, 22, 0.7)",
+      borderRight: "1px solid #2a1f3e",
+      overflowY: "auto",
+      padding: "12px 0",
+    }}>
+      <div style={{
+        fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase",
+        color: "#8a7fa6", fontWeight: 600,
+        padding: "0 16px 8px",
+      }}>
+        Files
+      </div>
+      <TreeNode node={root} depth={0} selectedPath={selectedPath} onSelect={onSelect} />
+    </div>
+  );
+}
+
+function TreeNode({ node, depth, selectedPath, onSelect }) {
+  const [open, setOpen] = React.useState(true);
+  const children = [...node.children.values()].sort((a, b) => {
+    // folders first
+    const aFolder = a.file == null;
+    const bFolder = b.file == null;
+    if (aFolder !== bFolder) return aFolder ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  return (
+    <>
+      {node.name !== "" && (
+        <div
+          onClick={() => (node.file ? onSelect(node.file) : setOpen(!open))}
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: `4px ${16}px 4px ${16 + depth * 14}px`,
+            cursor: "pointer",
+            fontFamily: "var(--dh-font-mono)", fontSize: 12,
+            color: selectedPath === node.path ? "#f2eefa" : "#c4bcd6",
+            background: selectedPath === node.path ? "rgba(168, 85, 247, 0.18)" : "transparent",
+            borderLeft: selectedPath === node.path ? "2px solid #a855f7" : "2px solid transparent",
+          }}
+          onMouseEnter={(e) => {
+            if (selectedPath !== node.path) e.currentTarget.style.background = "rgba(168, 85, 247, 0.08)";
+          }}
+          onMouseLeave={(e) => {
+            if (selectedPath !== node.path) e.currentTarget.style.background = "transparent";
+          }}
+        >
+          {node.file ? (
+            <i className="codicon codicon-file" style={{ fontSize: 12, color: "#9a92b0" }} />
+          ) : (
+            <>
+              <i
+                className="codicon codicon-chevron-right"
+                style={{
+                  fontSize: 10, color: "#9a92b0",
+                  transform: open ? "rotate(90deg)" : "rotate(0)",
+                  transition: "transform 120ms",
+                }}
+              />
+              <i className="codicon codicon-folder" style={{ fontSize: 12, color: "#c4a7f3" }} />
+            </>
+          )}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {node.name}
+          </span>
+        </div>
+      )}
+      {(node.name === "" || open) && children.map((child) => (
+        <TreeNode
+          key={child.path}
+          node={child}
+          depth={node.name === "" ? 0 : depth + 1}
+          selectedPath={selectedPath}
+          onSelect={onSelect}
+        />
+      ))}
     </>
+  );
+}
+
+function FilePreview({ file }) {
+  const ext = (file.path.split(".").pop() || "").toLowerCase();
+  const isMd = ext === "md";
+  return (
+    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+      {/* Breadcrumb strip */}
+      <div style={{
+        padding: "10px 18px",
+        borderBottom: "1px solid #2a1f3e",
+        fontFamily: "var(--dh-font-mono)", fontSize: 12,
+        color: "#c4bcd6",
+        display: "flex", alignItems: "center", gap: 8,
+        flex: "none",
+      }}>
+        <i className="codicon codicon-file" style={{ fontSize: 12, color: "#9a92b0" }} />
+        {file.path}
+        <span style={{ flex: 1 }} />
+        <span style={{
+          fontSize: 10, letterSpacing: "0.04em",
+          color: "#8a7fa6", border: "1px solid #3a2a52",
+          padding: "1px 6px", borderRadius: 3, textTransform: "uppercase",
+        }}>
+          {ext || "file"}
+        </span>
+      </div>
+
+      <pre style={{
+        margin: 0, flex: 1, overflow: "auto",
+        padding: "16px 22px",
+        fontFamily: "var(--dh-font-mono)", fontSize: 12.5, lineHeight: 1.55,
+        color: isMd ? "#e9e4f5" : "#d8cfe8",
+        background: "rgba(10, 4, 16, 0.6)",
+        whiteSpace: "pre-wrap", wordBreak: "break-word",
+      }}>
+        {file.content}
+      </pre>
+    </div>
   );
 }
 
