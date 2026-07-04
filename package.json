@@ -2,8 +2,9 @@
   "name": "aep-devhub",
   "displayName": "AEP Dev Hub",
   "description": "Centralized tool catalog for AEP engineering teams",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "aep",
+  "icon": "resources/devhub-marketplace.png",
   "engines": {
     "vscode": "^1.110.0"
   },
